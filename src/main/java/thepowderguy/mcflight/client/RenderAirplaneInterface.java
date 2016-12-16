@@ -7,8 +7,8 @@ import org.lwjgl.opengl.GL11;
 
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityBiplane;
-import thepowderguy.mcflight.math.Mat3x3;
-import thepowderguy.mcflight.math.Vector;
+import thepowderguy.mcflight.math.Mat3;
+import thepowderguy.mcflight.math.Vec3;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -33,8 +33,6 @@ public class RenderAirplaneInterface extends Gui {
 	static int green = 0xff00ff00;
 	static int red = 0xffff0000;
 	static DecimalFormat numformat = new DecimalFormat("#.##");
-	
-	double acc = 0;
 	
 	public boolean isDebugEnabled = false;
 
@@ -79,7 +77,7 @@ public class RenderAirplaneInterface extends Gui {
 		GL11.glBegin(GL11.GL_LINES);
 		//GL11.glColor3f(1.0f, 0.0f, 1.0f);
 		int len = 0;
-		Vector rot = entity.getInterpolatedRotation(event.getPartialTicks());
+		Vec3 rot = entity.getInterpolatedRotation(event.getPartialTicks());
 		float pRoll = (float) rot.z;
 		float pPitch = (float) rot.y;
 		int start = 5*(int)Math.ceil((pitch-10.0)/5.0);
@@ -181,14 +179,15 @@ public class RenderAirplaneInterface extends Gui {
 	public double pitch = 0;
 	public double yaw = 0;
 	public double roll = 0;
+	public double acc = 0;
 	
-	
-	public void setVars(double s, double a, double p, double y, double r) {
+	public void setVars(double s, double ac, double a, double p, double y, double r) {
 		speed = s;
 		alt = a;
 		pitch = p;
 		yaw = y;
 		roll = r;
+		acc = ac;
 	}
 	
 	
@@ -246,6 +245,7 @@ public class RenderAirplaneInterface extends Gui {
 	{
     	//mc.entityRenderer.setupOverlayRendering();
     	drawStr("Velocity: " 				, C_VEL);
+    	drawStr("Acceleration: " 				, acc);
     	drawStr("Thrust: " 					, C_THRUST);
     	drawStr("Angle of Attack: " 		, C_AOA);
     	drawStr("Lift: " 					, C_LIFT);
@@ -260,7 +260,7 @@ public class RenderAirplaneInterface extends Gui {
     	drawStr("Air density: " 		, C_AIR);
     	drawStr("Angular Velocity: " 		, C_ANGVEL);
     	drawStr("Fuel: " 					, C_FUEL);
-    	drawStr("WEight: " 					, C_WEIGHT);
+    	drawStr("Weight: " 					, C_WEIGHT);
     	drawStr("On ground: " 				, B_OG);
     	//drawStr("Prev: " 					, tmp1);
     	//drawStr("Correct: " 				, tmp2);

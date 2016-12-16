@@ -18,8 +18,8 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import thepowderguy.mcflight.math.Mat3x3;
-import thepowderguy.mcflight.math.Vector;
+import thepowderguy.mcflight.math.Mat3;
+import thepowderguy.mcflight.math.Vec3;
 
 
 @SideOnly(Side.CLIENT)
@@ -85,23 +85,23 @@ public class RenderBiplane extends Render
 
     		//translate
     		GlStateManager.translate((float) x, (float) y, (float) z);
-    		Vector angles;
+    		Vec3 angles;
     		if (Keyboard.isKeyDown(Keyboard.KEY_SPACE)) {
     			angles = entity.getInterpolatedRotation(partialTicks);
     		}
     		else 
     		{
 
-    			Vector angVelocity = new Vector(entity.angVelX*partialTicks, entity.angVelY*partialTicks, entity.angVelZ*partialTicks);
+    			Vec3 angVelocity = new Vec3(entity.angVelX*partialTicks, entity.angVelY*partialTicks, entity.angVelZ*partialTicks);
 
     			double rotationVelocity = angVelocity.mag();
-    			angles = new Vector(entity.rotationYaw, entity.rotationPitch, entity.rotationRoll);
+    			angles = new Vec3(entity.rotationYaw, entity.rotationPitch, entity.rotationRoll);
     			if (rotationVelocity > 0.0) {
-    				Vector axisRot = Vector.mul(angVelocity, 1.0/rotationVelocity);
-    				Vector vfwd_new = Vector.AxisAngleRotation(axisRot, entity.vfwd, rotationVelocity);
-    				Vector vup_new = Vector.AxisAngleRotation(axisRot, entity.vup, rotationVelocity);
-    				Vector vwing_new = Vector.AxisAngleRotation(axisRot, entity.vwing, rotationVelocity);
-    				angles = Mat3x3.getangles(vwing_new, vup_new, vfwd_new);
+    				Vec3 axisRot = Vec3.mul(angVelocity, 1.0/rotationVelocity);
+    				Vec3 vfwd_new = Vec3.AxisAngleRotation(axisRot, entity.vfwd, rotationVelocity);
+    				Vec3 vup_new = Vec3.AxisAngleRotation(axisRot, entity.vup, rotationVelocity);
+    				Vec3 vwing_new = Vec3.AxisAngleRotation(axisRot, entity.vside, rotationVelocity);
+    				angles = Mat3.getangles(vwing_new, vup_new, vfwd_new);
     			}
     		}
 
@@ -133,7 +133,7 @@ public class RenderBiplane extends Render
     	super.doRender(entity, x, y, z, par1, partialTicks);
     }
 
-    private void renderVector(Vector v, VertexBuffer vertexbuffer, int r, int g, int b) {
+    private void renderVector(Vec3 v, VertexBuffer vertexbuffer, int r, int g, int b) {
         vertexbuffer.pos(0.0D, 0.0D, 0.0D).color(r, g, b, 255).endVertex();
         vertexbuffer.pos(v.x*vscale, v.y*vscale, v.z*vscale).color(r, g, b, 255).endVertex();
     }

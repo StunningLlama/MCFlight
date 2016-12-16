@@ -10,9 +10,10 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
+import thepowderguy.mcflight.client.ClientEventHandler;
 import thepowderguy.mcflight.client.RenderAirplaneInterface;
-import thepowderguy.mcflight.math.Mat3x3;
-import thepowderguy.mcflight.math.Vector;
+import thepowderguy.mcflight.math.Mat3;
+import thepowderguy.mcflight.math.Vec3;
 
 public class CommandTestAirplane implements ICommand {
 	List<String> aliases = new ArrayList<String>();
@@ -40,7 +41,7 @@ public class CommandTestAirplane implements ICommand {
 		return aliases;
 	}
 	
-	public BlockPos addandmul(EntityPlayer p, Vector v) {
+	public BlockPos addandmul(EntityPlayer p, Vec3 v) {
 		return new BlockPos(v.x*10+p.posX, v.y*10+p.posY, v.z*10+p.posZ);
 	}
 	
@@ -48,9 +49,9 @@ public class CommandTestAirplane implements ICommand {
 	public void execute(MinecraftServer server, ICommandSender sender, String[] args) throws CommandException {
 		if (sender instanceof EntityPlayer && !sender.getEntityWorld().isRemote) {
 			EntityPlayer p = (EntityPlayer) sender;
-			Vector vx = Mat3x3.transform(-p.rotationYaw, p.rotationPitch, RenderAirplaneInterface.camroll, new Vector(1.0, 0.0, 0.0));
-			Vector vy = Mat3x3.transform(-p.rotationYaw, p.rotationPitch, RenderAirplaneInterface.camroll, new Vector(0.0, 1.0, 0.0));
-			Vector vz = Mat3x3.transform(-p.rotationYaw, p.rotationPitch, RenderAirplaneInterface.camroll, new Vector(0.0, 0.0, 1.0));
+			Vec3 vx = Mat3.transform(-p.rotationYaw, p.rotationPitch, ClientEventHandler.camroll, new Vec3(1.0, 0.0, 0.0));
+			Vec3 vy = Mat3.transform(-p.rotationYaw, p.rotationPitch, ClientEventHandler.camroll, new Vec3(0.0, 1.0, 0.0));
+			Vec3 vz = Mat3.transform(-p.rotationYaw, p.rotationPitch, ClientEventHandler.camroll, new Vec3(0.0, 0.0, 1.0));
 			p.world.setBlockState(addandmul(p, vx), Blocks.IRON_BLOCK.getDefaultState());
 			p.world.setBlockState(addandmul(p, vy), Blocks.EMERALD_BLOCK.getDefaultState());
 			p.world.setBlockState(addandmul(p, vz), Blocks.DIAMOND_BLOCK.getDefaultState());

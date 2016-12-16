@@ -8,8 +8,8 @@ import net.minecraftforge.client.event.FOVUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
-import thepowderguy.mcflight.math.Mat3x3;
-import thepowderguy.mcflight.math.Vector;
+import thepowderguy.mcflight.math.Mat3;
+import thepowderguy.mcflight.math.Vec3;
 
 public class ClientEventHandler {
 
@@ -22,11 +22,11 @@ public class ClientEventHandler {
 	public void cam(EntityViewRenderEvent.CameraSetup event) {//Minecraft.getMinecraft().gameSettings.thirdPersonView == 0 && 
 		if ((Minecraft.getMinecraft().player.getRidingEntity() instanceof EntityAirplane)) {
 			EntityAirplane entity = (EntityAirplane) Minecraft.getMinecraft().player.getRidingEntity();
-			Vector rot = entity.getInterpolatedRotation((float)event.getRenderPartialTicks());
-			Mat3x3 basetransform = Mat3x3.getTransformMatrix(rot.x, rot.y, rot.z);
-			Mat3x3 looktransform = Mat3x3.getTransformMatrix(EntityAirplane.viewYawOffset, EntityAirplane.viewPitchOffset, 0);
-			Mat3x3 transform = Mat3x3.mul(basetransform, looktransform);
-			Vector out = Mat3x3.getangles(transform);
+			Vec3 rot = entity.getInterpolatedRotation((float)event.getRenderPartialTicks());
+			Mat3 basetransform = Mat3.getTransformMatrix(rot.x, rot.y, rot.z);
+			Mat3 looktransform = Mat3.getTransformMatrix(EntityAirplane.viewYawOffset, EntityAirplane.viewPitchOffset, 0);
+			Mat3 transform = Mat3.mul(basetransform, looktransform);
+			Vec3 out = Mat3.getangles(transform);
 			event.setYaw(180-(float)out.x);
 			event.setPitch((float)out.y);
 			event.setRoll((float)out.z);
