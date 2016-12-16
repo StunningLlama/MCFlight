@@ -1,0 +1,13 @@
+item.flap.name=Wing Flap
+item.wing.name=Aircraft Wing
+item.doublewing.name=Double Wing
+item.propeller.name=Propeller
+item.jetengine.name=Jet Engine
+item.bigfuselage.name=Large Fuselage
+item.smallfuselage.name=Small Fuselage
+item.tail.name=Aircraft Tail
+item.biplane.name=Biplane
+
+itemGroup.Aircraft=Aircraft Parts
+
+entity.biplane.name=Biplane

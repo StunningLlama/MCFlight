@@ -1,0 +1,9 @@
+{
+  "airplane.biplane.engine": {
+    "category": "player",
+    "replace": true,
+    "sounds": [
+      "mcflight:airplane/biplane/engine"
+    ]
+  }
+}
