@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.FOVUpdateEvent;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
+import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.math.Mat3;
@@ -36,8 +37,16 @@ public class ClientEventHandler {
 	}
 
 	@SubscribeEvent
+	public void onCameraDistanceUpdate(CameraDistanceEvent event) {
+		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane)
+			event.setDist(7.0);
+	}
+	@SubscribeEvent
 	public void onRenderTickActual(RenderTickEvent event)
 	{
+		if (event.phase != TickEvent.Phase.START)
+			return;
+		
 		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD4)) camroll -= 0.5;
 		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6)) camroll += 0.5;
 

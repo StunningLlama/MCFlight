@@ -1,5 +1,6 @@
 package thepowderguy.mcflight.common;
 
+import thepowderguy.mcflight.client.CustomEntityRenderer;
 import thepowderguy.mcflight.client.InterfaceKeyHandler;
 import thepowderguy.mcflight.client.gui.McflightGUIHandler;
 import thepowderguy.mcflight.common.entity.*;
@@ -38,6 +39,7 @@ import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import net.minecraftforge.fml.common.Mod;
@@ -205,7 +207,7 @@ public class Mcflight {
 
 	@EventHandler
 	public static void postInit(FMLPostInitializationEvent event) {
-
+		Minecraft.getMinecraft().entityRenderer = new CustomEntityRenderer(Minecraft.getMinecraft(), Minecraft.getMinecraft().getResourceManager());
 	}
 	
 	public static ItemStack i(Block b)

@@ -198,7 +198,16 @@ public abstract class EntityAirplane extends Entity {
 	
 	public boolean stall = false;
 	public double damage = 0.0;
-	
+
+	double prevForceElevator = 0.0;
+	double forceElevator = 0.0;
+	double prevForceAlierons = 0.0;
+	double forceAlierons = 0.0;
+	double prevForceRudder = 0.0;
+	double forceRudder = 0.0;
+	double prevProppos = 0.0;
+	double propPos = 0.0;
+	double propVel = 0.0;
 	public static String engineSound = "mcflight:airplane.biplane.engine";
 	
 	//packet update
@@ -227,16 +236,26 @@ public abstract class EntityAirplane extends Entity {
    
 	//TODO
 	// * implement refueling and gui changes
-	// * Make the model look better and add rotating things
-	// * Make the sounds better
+	// * Make the model look better and add rotating things DONE!
+	// * Make the sounds better DONE!
 	// * Add collision detect
 	// * Realistic torquing?
 	
+	public double thrusttovelfunc(double x) {
+		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
+	}
 	
 	public void onUpdate()
 	{
 		super.onUpdate();
 		prevRotationRoll = rotationRoll;
+		prevProppos = propPos;
+		propVel += engine*1.0;
+		propVel -= Math.signum(propVel) * (0.005 + Math.abs(propVel*0.03) + propVel*propVel*0.02);
+		if (propVel < 0.005)
+			propVel = 0;
+		propPos += propVel;
+		//propPos += thrusttovelfunc(engine/thrust_const);
 		tick++;
 		//System.out.println((Math.pow(0.5, engine/5)));
 		if (!world.isRemote) {
@@ -308,9 +327,12 @@ public abstract class EntityAirplane extends Entity {
 		//Control Surfaces
 		fuel -= engine/100.0;
 
-		double forceElevator = 0.0;
-		double forceAlierons = 0.0;
-		double forceRudder = 0.0;
+		prevForceElevator = forceElevator;
+		prevForceAlierons = forceAlierons;
+		prevForceRudder = forceRudder;
+		forceElevator = 0.0;
+		forceAlierons = 0.0;
+		forceRudder = 0.0;
 
 		if (world.isRemote && minecraft.player.getRidingEntity() == this) {
 			
@@ -464,7 +486,6 @@ public abstract class EntityAirplane extends Entity {
 		}
 		
 		
-		//TODO!!
 		//velYaw *= (isOnGround? 0.85: 1.0);
 		//Rotation modular arithmetic
 		if (rotationYaw < -180.0) rotationYaw += 360;
@@ -512,6 +533,13 @@ public abstract class EntityAirplane extends Entity {
 			rotationRoll+(rotationRoll-prevRotationRoll)*partialTicks);
 	}
 
+
+	public Vec3 getInterpolatedControlSurfaces(double partialTicks) {
+		return new Vec3(prevForceRudder+(forceRudder-prevForceRudder)*partialTicks,
+				prevForceElevator+(forceElevator-prevForceElevator)*partialTicks,
+				prevForceAlierons+(forceAlierons-prevForceAlierons)*partialTicks);
+	}
+	
     public void onDeath(DamageSource cause)
     {
         if (world.getGameRules().getBoolean("doEntityDrops"))

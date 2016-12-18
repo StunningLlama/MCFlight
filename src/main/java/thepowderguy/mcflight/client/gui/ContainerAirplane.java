@@ -16,7 +16,7 @@ public class ContainerAirplane extends Container
 {
     private final IInventory horseInventory;
     private final EntityAirplane theHorse;
-
+    int fuelslot = 0;
     public ContainerAirplane(IInventory playerInventory, final IInventory horseInventoryIn, final EntityAirplane horse, EntityPlayer player)
     {
         this.horseInventory = horseInventoryIn;
@@ -47,9 +47,10 @@ public class ContainerAirplane extends Container
 
         this.addSlotToContainer(new Slot(horseInventoryIn, 15, 8, 18)
         {
-            public boolean isItemValid(ItemStack stack)
+            public void putStack(ItemStack stack)
             {
-                return stack.getItem() == Items.SADDLE && !this.getHasStack();
+            	super.putStack(stack);
+            	System.out.println(stack.getItem().getClass().getName() + " " + stack.getItem().getClass().getSimpleName());
             }
         });
         this.addSlotToContainer(new Slot(horseInventoryIn, 16, 8, 36)
@@ -73,6 +74,11 @@ public class ContainerAirplane extends Container
         return this.horseInventory.isUsableByPlayer(playerIn) && this.theHorse.isEntityAlive() && this.theHorse.getDistanceToEntity(playerIn) < 8.0F;
     }
 
+
+    public void putStackInSlot(int slotID, ItemStack stack)
+    {
+    	super.putStackInSlot(slotID, stack);
+    }
     /**
      * Take a stack from the specified inventory slot.
      */

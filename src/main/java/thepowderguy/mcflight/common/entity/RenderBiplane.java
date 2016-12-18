@@ -28,6 +28,7 @@ public class RenderBiplane extends Render
     private ResourceLocation TexturePath = new ResourceLocation("mcflight:textures/entity/biplane.png");  //refers to:assets/yourmod/textures/entity/yourtexture.png
 
     ModelBase model = new ModelBiplane();
+	public static float scale = 1.25f;
     
     static public boolean isVectorDrawing = false;
     
@@ -116,11 +117,10 @@ public class RenderBiplane extends Render
     		GlStateManager.scale(f4, f4, f4);
     		GlStateManager.scale(1.0F / f4, 1.0F / f4, 1.0F / f4);
     		this.bindEntityTexture(entity);
-    		float scale = 1.25f;
     		GlStateManager.scale(-scale, -scale, scale);
 
     		//render
-    		model.render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F);
+    		((ModelBiplane)model).render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F, partialTicks);
 
 
 
