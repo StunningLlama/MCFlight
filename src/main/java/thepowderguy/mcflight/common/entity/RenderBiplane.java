@@ -69,11 +69,14 @@ public class RenderBiplane extends Render
     		VertexBuffer vertexbuffer = tessellator.getBuffer();
     		GL11.glLineWidth(4.0F);
     		vertexbuffer.begin(1, DefaultVertexFormats.POSITION_COLOR);
-    		renderVector(entity.gravity_vec, vertexbuffer, 255, 255, 0);
-    		renderVector(entity.lift_vec, vertexbuffer, 0, 255, 0);
-    		renderVector(entity.thrust_vec, vertexbuffer, 0, 0, 255);
-    		renderVector(entity.drag_vec, vertexbuffer, 255, 0, 0);
-    		renderVector(entity.inddrag_vec, vertexbuffer, 255, 0, 255);
+    		renderVector(entity.gravity_vec, vertexbuffer, 255, 255, 0, vscale);
+    		renderVector(entity.lift_vec, vertexbuffer, 0, 255, 0, vscale);
+    		renderVector(entity.thrust_vec, vertexbuffer, 0, 0, 255, vscale);
+    		renderVector(entity.drag_vec, vertexbuffer, 255, 0, 0, vscale);
+    		renderVector(entity.inddrag_vec, vertexbuffer, 255, 0, 255, vscale);
+    		renderVector(entity.points[0], vertexbuffer, 255, 255, 255, 1.0);
+    		renderVector(entity.points[1], vertexbuffer, 255, 255, 255, 1.0);
+    		renderVector(entity.points[2], vertexbuffer, 255, 255, 255, 1.0);
     		tessellator.draw();
     		GL11.glLineWidth(1.0F);
     		//GlStateManager.depthMask(true);
@@ -133,9 +136,9 @@ public class RenderBiplane extends Render
     	super.doRender(entity, x, y, z, par1, partialTicks);
     }
 
-    private void renderVector(Vec3 v, VertexBuffer vertexbuffer, int r, int g, int b) {
+    private void renderVector(Vec3 v, VertexBuffer vertexbuffer, int r, int g, int b, double scale) {
         vertexbuffer.pos(0.0D, 0.0D, 0.0D).color(r, g, b, 255).endVertex();
-        vertexbuffer.pos(v.x*vscale, v.y*vscale, v.z*vscale).color(r, g, b, 255).endVertex();
+        vertexbuffer.pos(v.x*scale, v.y*scale, v.z*scale).color(r, g, b, 255).endVertex();
     }
     
     double vscale = 100.0;

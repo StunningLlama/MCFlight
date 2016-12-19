@@ -54,6 +54,11 @@ public class Vec3 {
 	public static Vec3 add(Vec3 a, Vec3 b) {
 		return new Vec3(a.x+b.x, a.y+b.y, a.z+b.z);
 	}
+
+	public static Vec3 sub(Vec3 a, Vec3 b) {
+		return new Vec3(a.x-b.x, a.y-b.y, a.z-b.z);
+	}
+	
 	public static Vec3 add(Vec3 a, Vec3 b, Vec3 c) {
 		return new Vec3(a.x+b.x+c.x, a.y+b.y+c.y, a.z+b.z+c.z);
 	}
@@ -83,6 +88,12 @@ public class Vec3 {
 		return new Vec3(xi, yi, zi);
 	}
 
+	public static Vec3 proj(Vec3 x, Vec3 a, Vec3 b) {
+		Vec3 norm = Vec3.cross(a, b);
+		norm = Vec3.unitvector(norm);
+		return Vec3.sub(x, Vec3.mul(x, Vec3.dot(x, norm)));
+	}
+	
 	public static Vec3 mul(Vec3 a, double b) {
 		return new Vec3(a.x*b, a.y*b, a.z*b);
 	}

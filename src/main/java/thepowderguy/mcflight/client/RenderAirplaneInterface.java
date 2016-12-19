@@ -214,6 +214,7 @@ public class RenderAirplaneInterface extends Gui {
     public double C_X = 0.0;
     public double C_Y = 0.0;
     public double C_Z = 0.0;
+    String asd = "";
    // public double tmpmrr = 0.0;
     
     public void setDebugVars(double vel, double aoa, double lift, double drag, double inddrag, double thrust, double air, double angVel, EntityAirplane airplane)
@@ -239,6 +240,7 @@ public class RenderAirplaneInterface extends Gui {
 //    	tmpmrr = airplane.rotationRoll - airplane.prevRotationRoll;
     	C_ANGVEL = angVel;
     	C_WEIGHT = airplane.weight;
+    	asd = airplane.text;
     }
     
 	public void drawDebugScr()
@@ -262,6 +264,7 @@ public class RenderAirplaneInterface extends Gui {
     	drawStr("Fuel: " 					, C_FUEL);
     	drawStr("Weight: " 					, C_WEIGHT);
     	drawStr("On ground: " 				, B_OG);
+    	drawStr(asd, 0);
     	//drawStr("Prev: " 					, tmp1);
     	//drawStr("Correct: " 				, tmp2);
     	y = 2;

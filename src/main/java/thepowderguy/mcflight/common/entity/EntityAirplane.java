@@ -70,6 +70,11 @@ public abstract class EntityAirplane extends Entity {
 		inv = new InventoryBasic("ASDF", false, 17);
 		this.setSize(1.0f, 1.0f);
 		this.fuel = EntityBiplane.fuelCapacity;
+		collisionPoints = new Vec3[] {
+				new Vec3(5.5, -14, 7.5),
+				new Vec3(-5.5, -14, 7.5),
+				new Vec3(0, -8, -38.5)
+		};
 		minecraft = Minecraft.getMinecraft();
 	}
 
@@ -195,7 +200,7 @@ public abstract class EntityAirplane extends Entity {
 	public double prevMotionX = 0;
 	public double prevMotionY = 0;
 	public double prevMotionZ = 0;
-	
+	Vec3[] points;
 	public boolean stall = false;
 	public double damage = 0.0;
 
@@ -209,6 +214,10 @@ public abstract class EntityAirplane extends Entity {
 	double propPos = 0.0;
 	double propVel = 0.0;
 	public static String engineSound = "mcflight:airplane.biplane.engine";
+	
+	public String text = "";
+	
+	private Vec3[] collisionPoints;
 	
 	//packet update
 	@Override
@@ -239,7 +248,7 @@ public abstract class EntityAirplane extends Entity {
 	// * Make the model look better and add rotating things DONE!
 	// * Make the sounds better DONE!
 	// * Add collision detect
-	// * Realistic torquing?
+	// * Color customization
 	
 	public double thrusttovelfunc(double x) {
 		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
@@ -374,15 +383,76 @@ public abstract class EntityAirplane extends Entity {
 			fuel = 0;
 			engine = 0;
 		}
-		//TODO forceRudder on ground
+		
+
 		Vec3 angVelocity = new Vec3(angVelX, angVelY, angVelZ);
-		angVelocity = Vec3.addn(angVelocity,
-				Vec3.mul(vfwd, forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight),
-				Vec3.mul(vup, forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
-						+ Vec3.dot(vel, vside)*0.5/weight
-						+ (onGround? (forceRudder*6.0*velocity):0)),
-				Vec3.mul(vside, forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
-						- Vec3.dot(vel, vup)*0.5/weight));
+		
+		//Integration
+		posX += motionX;
+		posY += motionY;
+		posZ += motionZ;
+		//Collision detection TODO make better collision detect
+		this.isOnGround = false;
+		this.onGround = false;
+		this.isCollidedVertically = false;
+		points = new Vec3[collisionPoints.length];
+		for (int i = 0; i < points.length; i++) {
+			Vec3 coord = transform.transform(collisionPoints[i]);
+			coord.mul(RenderBiplane.scale/16.0);
+			points[i] = coord;
+		}
+		
+		//integrate motion
+		//calculate collisions
+		//stop angular motion
+		//apply torque
+		//apply rotations
+		//correct Y coordinate
+		
+		//Force X Position
+		boolean allonground = true;
+		boolean[] ongroundarr = {false, false, false};
+		for (int i = 0; i < points.length; i++) {
+			if (isWheelInsideBlock(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld())) {
+				this.isOnGround = true;
+				this.onGround = true;
+				this.isCollidedVertically = true;
+				angVelocity.add(Vec3.cross(points[i], new Vec3(0.0, 1.0-((posY+points[i].y)%1.0), 0.0)).mul(3.0));
+				ongroundarr[i] = true;
+			} else {
+				allonground = false;
+			}
+		}
+		//if (!allonground){
+		//	for (int i = 0; i < points.length; i++) {
+		//		if (ongroundarr[i]) {
+		//		}
+		//	}
+		//}
+
+		//Vec3 normaltorque = new Vec3();
+		//for (int i = 0; i < points.length; i++) {
+		//	if (ongroundarr[i]) {
+		//		normaltorque.add(Vec3.cross(points[i], new Vec3(0.0, 0.1, 0.0)).mul(3.0));
+		//	}
+		//}
+		//double fPitchComponent = Vec3.dot(vside, normaltorque);
+		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
+		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
+				+ Vec3.dot(vel, vside)*0.5/weight
+				+ (onGround? (forceRudder*6.0*velocity):0);
+		double pitchForce = forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
+				- Vec3.dot(vel, vup)*0.5/weight;
+		//TODO forceRudder on ground
+		angVelocity = Vec3.addn(angVelocity, 
+				Vec3.mul(vfwd, rollForce),
+				Vec3.mul(vup, yawForce),
+				Vec3.mul(vside, pitchForce));
+
+		//if (allonground && (pitchForce <= fPitchComponent || pitchForce < 0))
+		//	angVelocity.x = 0;
+text = "";
+		//text = (allonground + " " + pitchForce);
 		//angVelocity = Vector.addn(angVelocity, Vector.mul(vfwd, forceAlierons*1.0*controlSensitivity), Vector.mul(vup, forceRudder*1.0*controlSensitivity), Vector.mul(vwing, forceElevator*1.0*controlSensitivity));
 		//enable to test control surfaces (constant)
 		angVelX = angVelocity.x*rotationSpeedDecay * (onGround?0.8:1.0);
@@ -390,21 +460,16 @@ public abstract class EntityAirplane extends Entity {
 		angVelZ = angVelocity.z*rotationSpeedDecay;
 		
 		
-		//Integration
-		posX += motionX;
-		posY += motionY;
-		posZ += motionZ;
-		
 		double mag_lift = lift_vec.mag();
 		double mag_drag = drag_vec.mag();
 		double mag_inddrag = inddrag_vec.mag();
 		double mag_thrust = thrust_vec.mag();
-		
+
 		if (mag_lift > 1.0) System.out.println("LIFT IS " + mag_lift);
 		if (mag_drag > 1.0) System.out.println("DRAG IS " + mag_drag);
 		if (mag_inddrag > 1.0) System.out.println("IND DRAG IS " + mag_inddrag);
 		if (mag_thrust > 1.0) System.out.println("THRUST IS " + mag_thrust);
-		
+
 		// 1. Convert pitch/yaw/roll axis to vectors
 		// 2. Use axis angle rotation to rotate vectors (these are now the values of a transformation matrix)
 		// 3. Convert transformation matrix back to euler angles
@@ -420,34 +485,43 @@ public abstract class EntityAirplane extends Entity {
 		rotationYaw = (float) angles.x;
 		rotationPitch = (float) angles.y;
 		rotationRoll = (float) angles.z;
+
 		
-		//Collision detection TODO make better collision detect
-		if (isWheelInsideBlock(posX, posY-0.2, posZ, this.getEntityWorld())) {
-			if (motionY < 0)
-			{
-				if (motionY < -0.5) {
-					AirplaneStatePacket pack = new AirplaneStatePacket(1);
-					Mcflight.network2.sendToServer(pack);
-				}
-				posY -= motionY;
-				motionY = 0;
+		if (isOnGround) {
+			Mat3 newtransform = Mat3.getTransformMatrix(rotationYaw, rotationPitch, rotationRoll);
+
+			if (motionY < -0.5) {
+				AirplaneStatePacket pack = new AirplaneStatePacket(1);
+				Mcflight.network2.sendToServer(pack);
 			}
-			this.isOnGround = true;
-			this.onGround = true;
-			this.isCollidedVertically = true;
-		} else {
-			this.isOnGround = false;
-			this.onGround = false;
-			this.isCollidedVertically = false;
+			
+			for (int i = 0; i < points.length; i++) {
+				Vec3 coord = newtransform.transform(collisionPoints[i]);
+				coord.mul(RenderBiplane.scale/16.0);
+				points[i] = coord;
+			}
+
+			double maxdist = 0;
+			for (int i = 0; i < points.length; i++) {
+				if (isWheelInsideBlock(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld())) {
+					double dist = 1.0-((posY+points[i].y)%1.0);
+					if (dist > maxdist)
+						maxdist = dist;
+				}
+			}
+			motionY += maxdist;
+			motionY *= 0.8;
+			//posY += maxdist;
+			//motionY = 0;
 		}
-		
+
 		if (Math.abs(angleOfAttack) > 21.0) {
 			stall = true;
 		} else {
 			stall = false;
 		}
-		
-		
+
+
 		//Turning on ground
 		if (this.onGround)
 		{
@@ -459,12 +533,12 @@ public abstract class EntityAirplane extends Entity {
 			motionZ = tmpZZ*Math.abs(dotp);
 			if (motionY < 0) this.motionY *= 0;
 
-			
+
 			double friction = 0.01;
 			if (world.isRemote && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
 				friction *= 3.0;
 			}
-			
+
 			double mag = Math.sqrt(motionX*motionX+motionZ*motionZ);
 			if (mag > friction) {
 				motionX *= (mag-friction)/mag;
@@ -474,7 +548,7 @@ public abstract class EntityAirplane extends Entity {
 				motionZ = 0.0;
 			}
 		}
-		
+
 		if (world.isRemote && minecraft.player.getRidingEntity() == this) {
 			double accel = Math.sqrt(
 					(motionX-prevMotionX)*(motionX-prevMotionX)+
@@ -484,15 +558,15 @@ public abstract class EntityAirplane extends Entity {
 			RenderAirplaneInterface.instance.setDebugVars(velocity, angleOfAttack, mag_lift, mag_drag, mag_inddrag, mag_thrust, air, angVelocity.mag(), this);
 			RenderAirplaneInterface.instance.setVars(velocity, accel, this.posY, rotationPitch, rotationYaw, rotationRoll);
 		}
-		
-		
+
+
 		//velYaw *= (isOnGround? 0.85: 1.0);
 		//Rotation modular arithmetic
 		if (rotationYaw < -180.0) rotationYaw += 360;
 		if (rotationYaw > 180.0) rotationYaw -= 360;
 		if (rotationRoll < -180.0) rotationRoll += 360;
 		if (rotationRoll > 180.0) rotationRoll -= 360;
-		
+
 		if (rotationPitch < -90.0) {
 			rotationPitch = -180 - rotationPitch;
 			rotationYaw = -rotationYaw;
@@ -503,19 +577,19 @@ public abstract class EntityAirplane extends Entity {
 			rotationYaw = -rotationYaw;
 			rotationRoll = -rotationRoll;
 		}
-		
+
 		prevMotionX = motionX;
 		prevMotionY = motionY;
 		prevMotionZ = motionZ;
 	}
 
-    @Nullable
-    public Entity getControllingPassenger()
-    {
-        List<Entity> list = this.getPassengers();
-        return list.isEmpty() ? null : (Entity)list.get(0);
-    }
-	
+	@Nullable
+	public Entity getControllingPassenger()
+	{
+		List<Entity> list = this.getPassengers();
+		return list.isEmpty() ? null : (Entity)list.get(0);
+	}
+
 	public void explode() {
 		boolean flag = world.getGameRules().getBoolean("mobGriefing");
 		world.newExplosion(this, this.posX, this.posY, this.posZ, 0.0f, flag, flag);
@@ -525,12 +599,12 @@ public abstract class EntityAirplane extends Entity {
 		this.entityDropItem(new ItemStack(Items.STICK, 3, 0), 0.0f);
 		this.kill();
 	}
-	
+
 	public Vec3 getInterpolatedRotation(float partialTicks) {
 		return new Vec3(
-			rotationYaw+(rotationYaw-prevRotationYaw)*partialTicks,
-			rotationPitch+(rotationPitch-prevRotationPitch)*partialTicks,
-			rotationRoll+(rotationRoll-prevRotationRoll)*partialTicks);
+				prevRotationYaw+(rotationYaw-prevRotationYaw)*partialTicks,
+				prevRotationPitch+(rotationPitch-prevRotationPitch)*partialTicks,
+				prevRotationRoll+(rotationRoll-prevRotationRoll)*partialTicks);
 	}
 
 
@@ -539,8 +613,8 @@ public abstract class EntityAirplane extends Entity {
 				prevForceElevator+(forceElevator-prevForceElevator)*partialTicks,
 				prevForceAlierons+(forceAlierons-prevForceAlierons)*partialTicks);
 	}
-	
-    public void onDeath(DamageSource cause)
+
+	public void onDeath(DamageSource cause)
     {
         if (world.getGameRules().getBoolean("doEntityDrops"))
         {
