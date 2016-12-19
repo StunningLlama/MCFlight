@@ -28,6 +28,7 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.inventory.IInventory;
 import net.minecraft.inventory.InventoryBasic;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
@@ -68,16 +69,29 @@ public abstract class EntityAirplane extends Entity {
 	public EntityAirplane(World worldIn) {
 		super(worldIn);
 		inv = new InventoryBasic("ASDF", false, 17);
-		this.setSize(1.0f, 1.0f);
+		this.setSize(2.0f, 2.0f);
 		this.fuel = EntityBiplane.fuelCapacity;
 		collisionPoints = new Vec3[] {
-				new Vec3(5.5, -14, 7.5),
-				new Vec3(-5.5, -14, 7.5),
-				new Vec3(0, -8, -38.5)
+				new Vec3(5.5, -15, 7.5),
+				new Vec3(-5.5, -15, 7.5),
+				new Vec3(0, -8.5, -38.5)
 		};
 		minecraft = Minecraft.getMinecraft();
 	}
-
+	
+	private double yoffset = -1.0;
+	
+	@Override
+    public void setPosition(double x, double y, double z)
+    {
+        this.posX = x;
+        this.posY = y;
+        this.posZ = z;
+        float f = this.width / 2.0F;
+        float f1 = this.height;
+        this.setEntityBoundingBox(new AxisAlignedBB(x - (double)f, y + yoffset, z - (double)f, x + (double)f, y + (double)f1  + yoffset, z + (double)f));
+    }
+	
 	public EntityAirplane(World worldIn, double x, double y, double z) {
 		this(worldIn, x, y, z, EntityBiplane.fuelCapacity);
 	}
@@ -213,6 +227,10 @@ public abstract class EntityAirplane extends Entity {
 	double prevProppos = 0.0;
 	double propPos = 0.0;
 	double propVel = 0.0;
+	
+	EnumDyeColor FuselageColor = EnumDyeColor.LIGHT_BLUE;
+	EnumDyeColor WingColor = EnumDyeColor.YELLOW;
+	
 	public static String engineSound = "mcflight:airplane.biplane.engine";
 	
 	public String text = "";
@@ -402,13 +420,6 @@ public abstract class EntityAirplane extends Entity {
 			points[i] = coord;
 		}
 		
-		//integrate motion
-		//calculate collisions
-		//stop angular motion
-		//apply torque
-		//apply rotations
-		//correct Y coordinate
-		
 		//Force X Position
 		boolean allonground = true;
 		boolean[] ongroundarr = {false, false, false};
@@ -417,26 +428,14 @@ public abstract class EntityAirplane extends Entity {
 				this.isOnGround = true;
 				this.onGround = true;
 				this.isCollidedVertically = true;
-				angVelocity.add(Vec3.cross(points[i], new Vec3(0.0, 1.0-((posY+points[i].y)%1.0), 0.0)).mul(3.0));
+				double dist = 1.0-((posY+points[i].y)%1.0);
+				angVelocity.add(Vec3.cross(points[i], new Vec3(0.0, dist, 0.0)).mul(3.0));
+				motionY += dist*0.4;
 				ongroundarr[i] = true;
 			} else {
 				allonground = false;
 			}
 		}
-		//if (!allonground){
-		//	for (int i = 0; i < points.length; i++) {
-		//		if (ongroundarr[i]) {
-		//		}
-		//	}
-		//}
-
-		//Vec3 normaltorque = new Vec3();
-		//for (int i = 0; i < points.length; i++) {
-		//	if (ongroundarr[i]) {
-		//		normaltorque.add(Vec3.cross(points[i], new Vec3(0.0, 0.1, 0.0)).mul(3.0));
-		//	}
-		//}
-		//double fPitchComponent = Vec3.dot(vside, normaltorque);
 		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
 		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
 				+ Vec3.dot(vel, vside)*0.5/weight
@@ -449,12 +448,7 @@ public abstract class EntityAirplane extends Entity {
 				Vec3.mul(vup, yawForce),
 				Vec3.mul(vside, pitchForce));
 
-		//if (allonground && (pitchForce <= fPitchComponent || pitchForce < 0))
-		//	angVelocity.x = 0;
-text = "";
-		//text = (allonground + " " + pitchForce);
-		//angVelocity = Vector.addn(angVelocity, Vector.mul(vfwd, forceAlierons*1.0*controlSensitivity), Vector.mul(vup, forceRudder*1.0*controlSensitivity), Vector.mul(vwing, forceElevator*1.0*controlSensitivity));
-		//enable to test control surfaces (constant)
+		text = "";
 		angVelX = angVelocity.x*rotationSpeedDecay * (onGround?0.8:1.0);
 		angVelY = angVelocity.y*rotationSpeedDecay;
 		angVelZ = angVelocity.z*rotationSpeedDecay;
@@ -494,25 +488,7 @@ text = "";
 				AirplaneStatePacket pack = new AirplaneStatePacket(1);
 				Mcflight.network2.sendToServer(pack);
 			}
-			
-			for (int i = 0; i < points.length; i++) {
-				Vec3 coord = newtransform.transform(collisionPoints[i]);
-				coord.mul(RenderBiplane.scale/16.0);
-				points[i] = coord;
-			}
-
-			double maxdist = 0;
-			for (int i = 0; i < points.length; i++) {
-				if (isWheelInsideBlock(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld())) {
-					double dist = 1.0-((posY+points[i].y)%1.0);
-					if (dist > maxdist)
-						maxdist = dist;
-				}
-			}
-			motionY += maxdist;
 			motionY *= 0.8;
-			//posY += maxdist;
-			//motionY = 0;
 		}
 
 		if (Math.abs(angleOfAttack) > 21.0) {
