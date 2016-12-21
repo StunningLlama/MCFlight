@@ -2,6 +2,7 @@ package thepowderguy.mcflight.common.packet;
 
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.EnumDyeColor;
 import net.minecraft.util.math.RayTraceResult;
@@ -20,15 +21,16 @@ public class AirplaneStateListener implements IMessageHandler<AirplaneStatePacke
 			}
 			break;
 		case 2:
+		case 3:
 			EntityPlayer player = ctx.getServerHandler().playerEntity;
-			RayTraceResult trace = player.rayTrace(5.0, 0.0f);
-			if (trace.entityHit != null && trace.entityHit instanceof EntityAirplane) {
-				if (player.getHeldItem(player.getActiveHand()).getItem() == Mcflight.item_paint) {
-					EnumDyeColor col = EnumDyeColor.byMetadata(player.getHeldItem(player.getActiveHand()).getItemDamage());
-					if (message.value == 0)
-						((EntityAirplane)trace.entityHit).FuselageColor = col;
-					else if (message.value == 1)
-						((EntityAirplane)trace.entityHit).WingColor = col;
+			Entity entity = ctx.getServerHandler().playerEntity.world.getEntityByID(message.value);
+			if (entity != null && entity instanceof EntityAirplane) {
+				if (EntityAirplane.isPaint(player.getHeldItemMainhand())) {
+					EnumDyeColor col = EnumDyeColor.byDyeDamage(player.getHeldItemMainhand().getItemDamage());
+					if (message.state == 2)
+						((EntityAirplane)entity).setFuselageColor(col);
+					else if (message.state == 3)
+						((EntityAirplane)entity).setWingColor(col);
 				}
 			}
 			break;

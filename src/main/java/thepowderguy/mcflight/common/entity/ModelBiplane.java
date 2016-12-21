@@ -372,7 +372,7 @@ public class ModelBiplane extends ModelBase
 		Propeller2.render(f5);
 		PropellerAxis.render(f5);
 		
-		float[] f_col = AirplaneColors.getDyeRgb(entity.FuselageColor);
+		float[] f_col = AirplaneColors.getDyeRgb(entity.getFuselageColor());
 		GlStateManager.color(f_col[0], f_col[1], f_col[2]);
 		EnginePanel.render(f5);
 		FuselageLeft.render(f5);
@@ -391,7 +391,7 @@ public class ModelBiplane extends ModelBase
 		Fuselage6.render(f5);
 		FuselageT.render(f5);
 
-		float[] w_col = AirplaneColors.getDyeRgb(entity.WingColor);
+		float[] w_col = AirplaneColors.getDyeRgb(entity.getWingColor());
 		GlStateManager.color(w_col[0], w_col[1], w_col[2]);
 		WingTop.render(f5);
 		WingBottom.render(f5);

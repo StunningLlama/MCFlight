@@ -11,6 +11,7 @@ import org.lwjgl.input.Mouse;
 
 import thepowderguy.mcflight.client.RenderAirplaneInterface;
 import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.item.AircraftPaint;
 import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 import thepowderguy.mcflight.common.packet.AirplaneUpdatePacket;
 import thepowderguy.mcflight.math.Mat3;
@@ -25,6 +26,7 @@ import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.item.EntityBoat;
+import net.minecraft.entity.passive.EntitySheep;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -35,6 +37,9 @@ import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.nbt.NBTTagList;
+import net.minecraft.network.datasync.DataParameter;
+import net.minecraft.network.datasync.DataSerializers;
+import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.DamageSource;
@@ -97,7 +102,10 @@ public abstract class EntityAirplane extends Entity {
 		init(fuel_i);
 	}
 	
+	
 	private void init(double fuelcap) {
+		this.setFuselageColor(EnumDyeColor.RED);
+		this.setWingColor(EnumDyeColor.GREEN);
 		this.setSize(2.0f, 2.0f);
 		this.fuel = fuelcap;
 		minecraft = Minecraft.getMinecraft();
@@ -119,7 +127,9 @@ public abstract class EntityAirplane extends Entity {
 		angVelZ = motionrot.getDoubleAt(2);
 		engine = tagCompound.getDouble("Engine");
 		fuel = tagCompound.getDouble("Fuel");
-
+		
+		this.setFuselageColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColFuselage")));
+		this.setWingColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColWing")));
 
         NBTTagList nbttaglist = tagCompound.getTagList("Items", 10);
         
@@ -142,7 +152,8 @@ public abstract class EntityAirplane extends Entity {
 		tagCompound.setDouble("Engine", engine);
 		tagCompound.setDouble("Fuel", fuel);
 		
-		
+		tagCompound.setInteger("ColFuselage", this.getFuselageColor().getMetadata());
+		tagCompound.setInteger("ColWing", this.getWingColor().getMetadata());
 
         NBTTagList nbttaglist = new NBTTagList();
 
@@ -231,9 +242,37 @@ public abstract class EntityAirplane extends Entity {
 	double propPos = 0.0;
 	double propVel = 0.0;
 	
-	public EnumDyeColor FuselageColor = EnumDyeColor.RED;
-	public EnumDyeColor WingColor = EnumDyeColor.GREEN;
-	
+//	public EnumDyeColor FuselageColor;
+//	public EnumDyeColor WingColor;
+    private static final DataParameter<Byte> FUSELAGE_COLOR = EntityDataManager.<Byte>createKey(EntitySheep.class, DataSerializers.BYTE);
+    private static final DataParameter<Byte> WING_COLOR = EntityDataManager.<Byte>createKey(EntitySheep.class, DataSerializers.BYTE);
+
+    public EnumDyeColor getFuselageColor()
+    {
+        return EnumDyeColor.byMetadata(((Byte)this.dataManager.get(FUSELAGE_COLOR)).byteValue());
+    }
+    
+    public EnumDyeColor getWingColor()
+    {
+        return EnumDyeColor.byMetadata(((Byte)this.dataManager.get(WING_COLOR)).byteValue());
+    }
+
+    public void setFuselageColor(EnumDyeColor color)
+    {
+        this.dataManager.set(FUSELAGE_COLOR, Byte.valueOf((byte) color.getMetadata()));
+    }
+    
+    public void setWingColor(EnumDyeColor color)
+    {
+        this.dataManager.set(WING_COLOR, Byte.valueOf((byte) color.getMetadata()));
+    }
+    
+    protected void entityInit()
+    {
+        this.dataManager.register(FUSELAGE_COLOR, Byte.valueOf((byte)0));
+        this.dataManager.register(WING_COLOR, Byte.valueOf((byte)0));
+    }
+    
 	public static String engineSound = "mcflight:airplane.biplane.engine";
 	
 	public String text = "";
@@ -464,7 +503,7 @@ public abstract class EntityAirplane extends Entity {
 			}
 		}
 		
-		System.out.println(motiondiff.mag());
+		//System.out.println(motiondiff.mag());
 		if (motiondiff.mag() > 0.2)
 			motiondiff = Vec3.mul(motiondiff, 0.2/motiondiff.mag());
 		
@@ -865,7 +904,7 @@ public abstract class EntityAirplane extends Entity {
 	}*/
 
 	public static boolean isPaint(ItemStack i) {
-		return (i != null && i.getItem() == Mcflight.item_paint);
+		return (i != null && i.getItem() instanceof AircraftPaint);
 	}
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, EnumHand hand)
@@ -873,13 +912,19 @@ public abstract class EntityAirplane extends Entity {
 		if (!world.isRemote)
 		{
 			if (isPaint(player.getHeldItem(hand)))
-				return false;
+				return true;
 			if(player.isSneaking()) {
 				player.openGui(Mcflight.instance, 0, world, this.getEntityId(), 0, 0);
 				return true;
 			} else {
 				player.startRiding(this);
 				return true;
+			}
+		} else {
+			if (isPaint(player.getHeldItem(hand))) {
+				player.openGui(Mcflight.instance, 1, world, this.getEntityId(), 0, 0);
+				return true;
+				
 			}
 		}
 		return false;
@@ -934,9 +979,5 @@ public abstract class EntityAirplane extends Entity {
     	}
     	super.dismountRidingEntity();
     }
-
-	protected void entityInit()
-	{
-	}
 }
 

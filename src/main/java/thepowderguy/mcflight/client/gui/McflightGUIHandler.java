@@ -21,6 +21,8 @@ public class McflightGUIHandler implements IGuiHandler{
 			if (ID == 0 && world.getEntityByID(x) instanceof EntityAirplane) {
 				EntityAirplane entity = (EntityAirplane) world.getEntityByID(x);
 				return new GuiAirplane (player.inventory, entity.inv, entity);
+			} else if (ID == 1) {
+				return new GuiPaintSelect(x);
 			}
 			return null;
 		}
