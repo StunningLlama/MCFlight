@@ -165,8 +165,8 @@ public class RenderAirplaneInterface extends Gui {
 			this.drawVerticalLine((int) (cX + (yaw-i)*2.0), cY+110, cY+120, green);
 		
 		font.drawString("Fuel: " + numformat.format(100.0*C_FUEL/EntityBiplane.fuelCapacity) + "%", cX-100, cY-92, green);
-		if (entity.stall)
-			font.drawString("STALL!", cX-130, cY-92, red);
+		if (!entity.isOnGround && entity.stall)
+			font.drawString("\u00a7nSTALL!", cX-130, cY-92, red);
 		font.drawString("Acceleraton: " + numformat.format(acc/EntityAirplane.gravity_const) + "g", cX-20, cY-92, green);
 		
 		if (isDebugEnabled)

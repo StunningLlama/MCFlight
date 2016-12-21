@@ -35,4 +35,10 @@ public class AirplaneColors {
     {
         return (float[])DYE_TO_RGB.get(dyeColor);
     }
+    
+    public static int getHexRgb(EnumDyeColor dyeColor)
+    {
+    	float[] RGB = DYE_TO_RGB.get(dyeColor);
+    	return ((int)(RGB[0]*0xFF) << 16) + ((int)(RGB[1]*0xFF) << 8) + ((int)(RGB[2]*0xFF) << 0);
+    }
 }

@@ -1,5 +1,7 @@
 package thepowderguy.mcflight.common.entity;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.annotation.Nullable;
@@ -68,15 +70,7 @@ public abstract class EntityAirplane extends Entity {
 	
 	public EntityAirplane(World worldIn) {
 		super(worldIn);
-		inv = new InventoryBasic("ASDF", false, 17);
-		this.setSize(2.0f, 2.0f);
-		this.fuel = EntityBiplane.fuelCapacity;
-		collisionPoints = new Vec3[] {
-				new Vec3(5.5, -15, 7.5),
-				new Vec3(-5.5, -15, 7.5),
-				new Vec3(0, -8.5, -38.5)
-		};
-		minecraft = Minecraft.getMinecraft();
+		init(EntityBiplane.fuelCapacity);
 	}
 	
 	private double yoffset = -1.0;
@@ -100,8 +94,14 @@ public abstract class EntityAirplane extends Entity {
 		super(worldIn);
 		this.setPosition(x, y, z);
 		this.motionX = this.motionY = this.motionZ = this.prevPosX = this.prevPosY = this.prevPosZ = 0;
-		this.setSize(1.0f, 1.0f);
-		this.fuel = fuel_i;
+		init(fuel_i);
+	}
+	
+	private void init(double fuelcap) {
+		this.setSize(2.0f, 2.0f);
+		this.fuel = fuelcap;
+		minecraft = Minecraft.getMinecraft();
+		inv = new InventoryBasic("ASDF", false, 17);
 	}
 
 	public boolean canBeCollidedWith()
@@ -182,6 +182,9 @@ public abstract class EntityAirplane extends Entity {
 	public double engine = 0;
 	public double velocity = 0.0;
 	public boolean isOnGround = false;
+	public boolean collidedX = false;
+	public boolean collidedY = false;
+	public boolean collidedZ = false;
 	public double fuel = 0;
 	public double weight = 1.0;
 
@@ -228,15 +231,24 @@ public abstract class EntityAirplane extends Entity {
 	double propPos = 0.0;
 	double propVel = 0.0;
 	
-	EnumDyeColor FuselageColor = EnumDyeColor.LIGHT_BLUE;
-	EnumDyeColor WingColor = EnumDyeColor.YELLOW;
+	public EnumDyeColor FuselageColor = EnumDyeColor.RED;
+	public EnumDyeColor WingColor = EnumDyeColor.GREEN;
 	
 	public static String engineSound = "mcflight:airplane.biplane.engine";
 	
 	public String text = "";
 	
-	private Vec3[] collisionPoints;
-	
+	private static Vec3[] collisionPoints;
+	static {
+		collisionPoints = new Vec3[] {
+					new Vec3(5.5, -15, 7.5),
+					new Vec3(-5.5, -15, 7.5),
+					new Vec3(0.0, -8.5, -38.5),
+					new Vec3(0.0, 0.0, 22.0),
+					new Vec3(-50.0, -5.0, 0.0),
+					new Vec3(50.0, -5.0, 0.0)
+			};
+	}
 	//packet update
 	@Override
 	@SideOnly(Side.CLIENT)
@@ -265,8 +277,9 @@ public abstract class EntityAirplane extends Entity {
 	// * implement refueling and gui changes
 	// * Make the model look better and add rotating things DONE!
 	// * Make the sounds better DONE!
-	// * Add collision detect
+	// * Add collision detect DONE!
 	// * Color customization
+	// * A bit more realistic control surfaces
 	
 	public double thrusttovelfunc(double x) {
 		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
@@ -409,11 +422,15 @@ public abstract class EntityAirplane extends Entity {
 		posX += motionX;
 		posY += motionY;
 		posZ += motionZ;
-		//Collision detection TODO make better collision detect
+		
 		this.isOnGround = false;
 		this.onGround = false;
 		this.isCollidedVertically = false;
+		this.collidedX = false;
+		this.collidedY = false;
+		this.collidedZ = false;
 		points = new Vec3[collisionPoints.length];
+	
 		for (int i = 0; i < points.length; i++) {
 			Vec3 coord = transform.transform(collisionPoints[i]);
 			coord.mul(RenderBiplane.scale/16.0);
@@ -422,33 +439,52 @@ public abstract class EntityAirplane extends Entity {
 		
 		//Force X Position
 		boolean allonground = true;
-		boolean[] ongroundarr = {false, false, false};
+		//boolean[] ongroundarr = {false, false, false};
+		Vec3 motiondiff = new Vec3();
+		Vec3 angmotiondiff = new Vec3();
 		for (int i = 0; i < points.length; i++) {
-			if (isWheelInsideBlock(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld())) {
+			Vec3 force = (checkCollisions(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
+			if (force != null) {
+
 				this.isOnGround = true;
 				this.onGround = true;
 				this.isCollidedVertically = true;
-				double dist = 1.0-((posY+points[i].y)%1.0);
-				angVelocity.add(Vec3.cross(points[i], new Vec3(0.0, dist, 0.0)).mul(3.0));
-				motionY += dist*0.4;
-				ongroundarr[i] = true;
+				//double dist = 1.0-((posY+points[i].y)%1.0);
+				//if (i < 3)
+					angmotiondiff.add(Vec3.cross(points[i], force).mul(3.0));
+				//else
+				//	angmotiondiff.add(Vec3.cross(points[i], Vec3.mul(force, -1.0)).mul(3.0));
+				//if (i < 3)
+					motiondiff.add(Vec3.mul(force, 0.4));
+				//else
+				//	motiondiff.add(Vec3.mul(force, -0.4));
+		//		ongroundarr[i] = true;
 			} else {
 				allonground = false;
 			}
 		}
+		
+		System.out.println(motiondiff.mag());
+		if (motiondiff.mag() > 0.2)
+			motiondiff = Vec3.mul(motiondiff, 0.2/motiondiff.mag());
+		
+		motionX += motiondiff.x;
+		motionY += motiondiff.y;
+		motionZ += motiondiff.z;
+		angVelocity.add(angmotiondiff);
+		
 		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
 		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
 				+ Vec3.dot(vel, vside)*0.5/weight
 				+ (onGround? (forceRudder*6.0*velocity):0);
 		double pitchForce = forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
 				- Vec3.dot(vel, vup)*0.5/weight;
-		//TODO forceRudder on ground
+	
 		angVelocity = Vec3.addn(angVelocity, 
 				Vec3.mul(vfwd, rollForce),
 				Vec3.mul(vup, yawForce),
 				Vec3.mul(vside, pitchForce));
 
-		text = "";
 		angVelX = angVelocity.x*rotationSpeedDecay * (onGround?0.8:1.0);
 		angVelY = angVelocity.y*rotationSpeedDecay;
 		angVelZ = angVelocity.z*rotationSpeedDecay;
@@ -480,15 +516,28 @@ public abstract class EntityAirplane extends Entity {
 		rotationPitch = (float) angles.y;
 		rotationRoll = (float) angles.z;
 
-		
-		if (isOnGround) {
-			Mat3 newtransform = Mat3.getTransformMatrix(rotationYaw, rotationPitch, rotationRoll);
 
+		text = (collidedX + " " + collidedY + " " + collidedZ);
+		if (collidedX) {
+			if (motionX < -0.5) {
+				AirplaneStatePacket pack = new AirplaneStatePacket(1, 0);
+				Mcflight.network2.sendToServer(pack);
+			}
+			motionX *= 0.8;
+		}
+		if (collidedY) {
 			if (motionY < -0.5) {
-				AirplaneStatePacket pack = new AirplaneStatePacket(1);
+				AirplaneStatePacket pack = new AirplaneStatePacket(1, 0);
 				Mcflight.network2.sendToServer(pack);
 			}
 			motionY *= 0.8;
+		}
+		if (collidedZ) {
+			if (motionZ < -0.5) {
+				AirplaneStatePacket pack = new AirplaneStatePacket(1, 0);
+				Mcflight.network2.sendToServer(pack);
+			}
+			motionZ *= 0.8;
 		}
 
 		if (Math.abs(angleOfAttack) > 21.0) {
@@ -660,14 +709,105 @@ public abstract class EntityAirplane extends Entity {
 		return 1/(1+Math.pow(1.05, x-256));
 	}
 	
-	public boolean isWheelInsideBlock(double x, double y, double z, World w) {
+	
+	public Vec3 checkCollisions(double x, double y, double z, World w) {
 		BlockPos pos = new BlockPos(x, y, z);
 		IBlockState state = w.getBlockState(pos);
-		if (state.getBlock().isAir(state, w, pos))		
-			return false;
-		return true;
+		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
+		if (box == null || !box.isVecInside(new Vec3d(Mod1(x), Mod1(y), Mod1(z))))
+			return null;
+		double avgx = avg(box.minX, box.maxX);
+		double avgy = avg(box.minY, box.maxY);
+		double avgz = avg(box.minZ, box.maxZ);
+		double mx = Mod1(x);
+		double my = Mod1(y);
+		double mz = Mod1(z);
+		//goes through every surrounding block
+		Vec3[] p1 = new Vec3[] {
+				new Vec3(mx, box.maxY, mz),
+				new Vec3(box.minX, my, mz),
+				new Vec3(box.maxX, my, mz),
+				new Vec3(mx, my, box.minZ),
+				new Vec3(mx, my, box.maxZ),
+				new Vec3(mx, box.minY, mz),
+		};
+		Vec3[] p2 = new Vec3[] {
+				new Vec3(box.minX, my, box.minZ),
+				new Vec3(box.maxX, my, box.minZ),
+				new Vec3(box.minX, my, box.maxZ),
+				new Vec3(box.maxX, my, box.maxZ),
+
+				new Vec3(mx, box.minY, box.minZ),
+				new Vec3(mx, box.maxY, box.minZ),
+				new Vec3(mx, box.minY, box.maxZ),
+				new Vec3(mx, box.maxY, box.maxZ),
+
+				new Vec3(box.minX, box.minY, mz),
+				new Vec3(box.maxX, box.minY, mz),
+				new Vec3(box.minX, box.maxY, mz),
+				new Vec3(box.maxX, box.maxY, mz),
+		};
+		Vec3[] p3 = new Vec3[] {
+				new Vec3(box.minX, box.minY, box.minZ),
+				new Vec3(box.maxX, box.minY, box.minZ),
+				new Vec3(box.minX, box.maxY, box.minZ),
+				new Vec3(box.maxX, box.maxY, box.minZ),
+				new Vec3(box.minX, box.minY, box.maxZ),
+				new Vec3(box.maxX, box.minY, box.maxZ),
+				new Vec3(box.minX, box.maxY, box.maxZ),
+				new Vec3(box.maxX, box.maxY, box.maxZ)
+		};
+		final Vec3 modposvec = new Vec3(mx, my, mz);
+		Vec3 floorposvec = new Vec3(Math.floor(x), Math.floor(y), Math.floor(z));
+		Vec3 center = new Vec3(avgx, avgy, avgz);
+		Vec3 out = performcollisionset(p1, modposvec, floorposvec, w);
+		if (out == null) {
+			out = performcollisionset(p2, modposvec, floorposvec, w);
+			if (out == null) {
+				out = performcollisionset(p3, modposvec, floorposvec, w);
+				if (out == null) {
+					return null;
+				}
+			}
+		}
+		if (Math.abs(out.x) > 0.001)
+			collidedX = true;
+		if (Math.abs(out.y) > 0.001)
+			collidedY = true;
+		if (Math.abs(out.z) > 0.001)
+			collidedZ = true;
+			
+		return out;
 	}
 	
+	private Vec3 performcollisionset(Vec3[] points, final Vec3 modposvec, Vec3 floorposvec, World w) {
+		Arrays.sort(points, new Comparator<Vec3>() {
+			@Override
+			public int compare(Vec3 a, Vec3 b) {
+				return Double.compare(Vec3.distsq(modposvec, a), Vec3.distsq(modposvec, b));
+			}
+		});
+		for (int closest = 0; closest < points.length; closest++) {
+			//Vec3 v = Vec3.add(floorposvec, center, Vec3.sub(sides[j], center).mul(1.1));
+		//	System.out.println(Vec3.distsq(points[closest], modposvec));
+			if (!isVecInside(Vec3.add(floorposvec, modposvec, Vec3.sub(points[closest], modposvec).mul(1.1)), w)) {
+				Vec3 out = Vec3.sub(points[closest], modposvec);
+				return out;
+				//return new Vec3(0.0, 1.0-Mod1(y), 0.0);
+			}
+		}
+		return null;
+	}
+	
+	public boolean isVecInside(Vec3 p, World w) {
+		BlockPos pos = new BlockPos(p.x, p.y, p.z);
+		IBlockState state = w.getBlockState(pos);
+		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
+
+		if (box != null && box.isVecInside(new Vec3d(Mod1(p.x), Mod1(p.y), Mod1(p.z))))
+			return true;
+		return false;
+	}
 	//Trig functions
 
 	public static double dSin(double a) {
@@ -676,6 +816,10 @@ public abstract class EntityAirplane extends Entity {
 
 	public static double dCos(double a) {
 		return Math.cos(Math.toRadians(a));
+	}
+	
+	public static double Mod1(double x) {
+		return x - Math.floor(x);
 	}
 	
 	public static int sign(double a) {
@@ -702,6 +846,10 @@ public abstract class EntityAirplane extends Entity {
 		return 0;
 	}
 	
+	public static double avg(double a, double b) {
+		return ((a+b)/2.0);
+	}
+	
 	/*@Override
 	public boolean interactFirst(EntityPlayer playerIn) {
 		if (this.getControllingPassenger() != null && this.getControllingPassenger() instanceof EntityPlayer && this.getControllingPassenger() != playerIn) {
@@ -716,12 +864,16 @@ public abstract class EntityAirplane extends Entity {
 		}
 	}*/
 
-
+	public static boolean isPaint(ItemStack i) {
+		return (i != null && i.getItem() == Mcflight.item_paint);
+	}
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, EnumHand hand)
 	{
 		if (!world.isRemote)
 		{
+			if (isPaint(player.getHeldItem(hand)))
+				return false;
 			if(player.isSneaking()) {
 				player.openGui(Mcflight.instance, 0, world, this.getEntityId(), 0, 0);
 				return true;

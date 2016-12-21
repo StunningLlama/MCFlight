@@ -62,6 +62,9 @@ public class RenderBiplane extends Render
 
     	if (entity.getControllingPassenger() == Minecraft.getMinecraft().player && isVectorDrawing)
     	{
+
+    		GlStateManager.pushMatrix();
+    		GlStateManager.translate(0, -RenderBiplane.scale * 5f/16f, 0);
     		GlStateManager.disableTexture2D();
     		GL11.glDisable(GL11.GL_LIGHTING);
     		//GlStateManager.depthMask(false);
@@ -74,14 +77,14 @@ public class RenderBiplane extends Render
     		renderVector(entity.thrust_vec, vertexbuffer, 0, 0, 255, vscale);
     		renderVector(entity.drag_vec, vertexbuffer, 255, 0, 0, vscale);
     		renderVector(entity.inddrag_vec, vertexbuffer, 255, 0, 255, vscale);
-    		renderVector(entity.points[0], vertexbuffer, 255, 255, 255, 1.0);
-    		renderVector(entity.points[1], vertexbuffer, 255, 255, 255, 1.0);
-    		renderVector(entity.points[2], vertexbuffer, 255, 255, 255, 1.0);
+    		for (Vec3 i: entity.points)
+    			renderVector(i, vertexbuffer, 255, 255, 255, 1.0);
     		tessellator.draw();
     		GL11.glLineWidth(1.0F);
     		//GlStateManager.depthMask(true);
     		GL11.glEnable(GL11.GL_LIGHTING);
     		GlStateManager.enableTexture2D();
+    		GlStateManager.popMatrix();
     	}
     	else
     	{

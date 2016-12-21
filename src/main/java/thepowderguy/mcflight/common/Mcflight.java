@@ -25,11 +25,13 @@ import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
+import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityTracker;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
+import net.minecraft.item.EnumDyeColor;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
@@ -82,6 +84,8 @@ public class Mcflight {
 	public static Item item_airplane_boeing_737;
 	public static Item item_airplane_douglas_dc3;
 	
+	public static Item item_paint;
+	
 	public static SoundEvent sound_engine;
 	public static Oil fluid_oil;
 	public static Block block_oil;
@@ -128,6 +132,7 @@ public class Mcflight {
 
 		item_airplane_biplane = new ItemBiplane().setUnlocalizedName("biplane").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		
+		item_paint = new AircraftPaint().setUnlocalizedName("aircraftpaint").setMaxStackSize(1);
 		/******* uncomment to enable oil test **********/
 
 		//Blocks.WATER
@@ -149,9 +154,9 @@ public class Mcflight {
 		GameRegistry.register(item_tail.setRegistryName("tail")			);
 		
 		GameRegistry.register(item_airplane_biplane.setRegistryName("biplane"));
-
+		GameRegistry.register(item_paint.setRegistryName("aircraftpaint"));
 		//GameRegistry.register(block_oil.setRegistryName("oil"));
-
+        
 		fluid_oil = new Oil("oil", new ResourceLocation("mcflight:blocks/oilstill"), new ResourceLocation("mcflight:blocks/oilflowing"));
 		FluidRegistry.registerFluid(fluid_oil);
 		FluidRegistry.addBucketForFluid(fluid_oil);
@@ -163,7 +168,6 @@ public class Mcflight {
 		ResourceLocation soundloc = new ResourceLocation("mcflight", "airplane.biplane.engine");
 		sound_engine = new SoundEvent(soundloc);
 		GameRegistry.register(sound_engine, soundloc);
-		
 	}
 
 	@EventHandler
@@ -196,6 +200,11 @@ public class Mcflight {
 		GameRegistry.addRecipe(i(item_airplane_biplane), " p ", "dfd", " t ",
 				'p', i(item_propeller), 'd', i(item_doublewing), 'f', i(item_smallfuselage), 't', i(item_tail));
 		
+        for (int i = 0; i < 16; ++i)
+        {
+           GameRegistry.addRecipe(new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
+        }//
+        //ItemColors.
 		proxy.RegisterRenderItems();
 		EntityRegistry.registerModEntity(new ResourceLocation("mcflight:biplane"), EntityBiplane.class, "biplane", 0, this, 64, 20, true);
 		proxy.RegisterRenderEntities();

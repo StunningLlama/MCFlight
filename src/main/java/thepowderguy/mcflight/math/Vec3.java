@@ -1,5 +1,7 @@
 package thepowderguy.mcflight.math;
 
+import net.minecraft.util.math.Vec3d;
+
 public class Vec3 {
 	
 	public double x;
@@ -68,6 +70,12 @@ public class Vec3 {
 		y += a.y;
 		z += a.z;
 	}
+	
+	public void add(double x, double y, double z) {
+		x += x;
+		y += y;
+		z += z;
+	}
 
 	public Vec3 mul(double a) {
 		x *= a;
@@ -124,4 +132,18 @@ public class Vec3 {
 		return Vec3.add(Vec3.mul(point, dCos(theta)), Vec3.mul(axis, Vec3.dot(axis, point)*(1.0-dCos(theta))), Vec3.mul(Vec3.cross(axis, point), dSin(theta)));
 	}
 	
+	public static double distsq(Vec3 a, Vec3 b) {
+		return (a.x-b.x)*(a.x-b.x) + (a.y-b.y)*(a.y-b.y) + (a.z-b.z)*(a.z-b.z);
+	}
+
+	public static double dist(Vec3 a, Vec3 b) {
+		return Math.sqrt(Vec3.distsq(a, b));
+	}
+	public Vec3d toVec3d() {
+		return new Vec3d(x, y, z);
+	}
+	@Override
+	public String toString() {
+		return "(" + x + ", " + y + ", " + z + ")";
+	}
 }

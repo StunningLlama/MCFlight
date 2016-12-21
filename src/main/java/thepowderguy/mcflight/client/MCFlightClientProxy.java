@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
 import net.minecraft.client.renderer.block.statemap.StateMap;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
+import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.item.Item;
@@ -20,10 +21,23 @@ import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityBiplane;
 import thepowderguy.mcflight.common.entity.RenderBiplane;
+import thepowderguy.mcflight.common.item.AircraftPaint;
 
 public class MCFlightClientProxy extends MCFlightCommonProxy {
 	@Override
 	public void RegisterRenderItems() {
+
+        Minecraft.getMinecraft().getItemColors().registerItemColorHandler(new IItemColor() {
+
+			@Override
+			public int getColorFromItemstack(ItemStack stack, int tintIndex) {
+				if (tintIndex == 1)
+					return (AircraftPaint.getCustColor(stack));
+				return -1;
+			}
+        	
+        }, Mcflight.item_paint);
+        
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_flap, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "flap", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_wing, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "wing", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_doublewing, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "doublewing", "inventory"));
@@ -33,6 +47,9 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_smallfuselage, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "smallfuselage", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_tail, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "tail", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_airplane_biplane, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "biplane", "inventory"));
+		for (int i = 0; i < 16; i++) {
+			Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_paint, i, new ModelResourceLocation(Mcflight.MODID + ":" + "aircraftpaint", "inventory"));
+		}
 		
 		//Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(item, meta, location);
 		//ModelLoader.setCustomStateMapper(Main.block_oil, (new StateMap.Builder()).addPropertiesToIgnore(BlockFluidBase.LEVEL).build());Item item = Item.getItemFromBlock((Block) fluidBlock);

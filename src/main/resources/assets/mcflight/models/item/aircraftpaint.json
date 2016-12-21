@@ -1,0 +1,7 @@
+{
+    "parent": "builtin/generated",
+    "textures": {
+        "layer0": "mcflight:items/paint_bottom",
+        "layer1": "mcflight:items/paint_top"
+    }
+}
