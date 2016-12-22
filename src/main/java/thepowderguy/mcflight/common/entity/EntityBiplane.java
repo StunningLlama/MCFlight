@@ -10,7 +10,7 @@ public class EntityBiplane extends EntityAirplane {
 		super(worldIn);
 	}
 	
-	public EntityBiplane(World worldIn, double x, double y, double z, double fuel)
+	public EntityBiplane(World worldIn, double x, double y, double z, float fuel)
 	{
 		super(worldIn, x, y, z, fuel);
 	}

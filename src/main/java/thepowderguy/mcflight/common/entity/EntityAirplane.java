@@ -12,8 +12,10 @@ import org.lwjgl.input.Mouse;
 import thepowderguy.mcflight.client.RenderAirplaneInterface;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.item.AircraftPaint;
+import thepowderguy.mcflight.common.item.Kerosene;
 import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 import thepowderguy.mcflight.common.packet.AirplaneUpdatePacket;
+import thepowderguy.mcflight.common.world.Oil;
 import thepowderguy.mcflight.math.Mat3;
 import thepowderguy.mcflight.math.Vec3;
 import net.minecraft.block.Block;
@@ -50,9 +52,11 @@ import net.minecraft.util.SoundCategory;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
+import net.minecraftforge.fluids.UniversalBucket;
 import net.minecraftforge.fml.common.network.internal.FMLNetworkHandler;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import net.minecraftforge.items.ItemHandlerHelper;
 
 public abstract class EntityAirplane extends Entity {
 	
@@ -95,7 +99,7 @@ public abstract class EntityAirplane extends Entity {
 		this(worldIn, x, y, z, EntityBiplane.fuelCapacity);
 	}
 	
-	public EntityAirplane(World worldIn, double x, double y, double z, double fuel_i) {
+	public EntityAirplane(World worldIn, double x, double y, double z, float fuel_i) {
 		super(worldIn);
 		this.setPosition(x, y, z);
 		this.motionX = this.motionY = this.motionZ = this.prevPosX = this.prevPosY = this.prevPosZ = 0;
@@ -103,11 +107,14 @@ public abstract class EntityAirplane extends Entity {
 	}
 	
 	
-	private void init(double fuelcap) {
-		this.setFuselageColor(EnumDyeColor.RED);
-		this.setWingColor(EnumDyeColor.GREEN);
+	private void init(float fuelcap) {
+		if (serverSide()) {
+			sfuel = fuelcap;
+			this.setFuel(sfuel);
+		}
+		this.setFuselageColor(EnumDyeColor.SILVER);
+		this.setWingColor(EnumDyeColor.SILVER);
 		this.setSize(2.0f, 2.0f);
-		this.fuel = fuelcap;
 		minecraft = Minecraft.getMinecraft();
 		inv = new InventoryBasic("ASDF", false, 17);
 	}
@@ -126,8 +133,8 @@ public abstract class EntityAirplane extends Entity {
 		angVelY = motionrot.getDoubleAt(1);
 		angVelZ = motionrot.getDoubleAt(2);
 		engine = tagCompound.getDouble("Engine");
-		fuel = tagCompound.getDouble("Fuel");
-		
+		sfuel = tagCompound.getFloat("Fuel");
+		this.setFuel(sfuel);
 		this.setFuselageColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColFuselage")));
 		this.setWingColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColWing")));
 
@@ -144,13 +151,29 @@ public abstract class EntityAirplane extends Entity {
             }
         }
 	}
+	
+	public void readEntityFromItemStack(ItemStack item) {
+		NBTTagCompound tagCompound = item.getSubCompound("Color");
+		if (tagCompound == null) return;
+		sfuel = tagCompound.getFloat("Fuel");
+		this.setFuel(sfuel);
+		this.setFuselageColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColFuselage")));
+		this.setWingColor(EnumDyeColor.byMetadata(tagCompound.getInteger("ColWing")));
+	}
+
+	public void writeEntityToItemStack(ItemStack item) {
+		NBTTagCompound tagCompound = item.getOrCreateSubCompound("Color");
+		tagCompound.setFloat("Fuel", this.getFuel());
+		tagCompound.setInteger("ColFuselage", this.getFuselageColor().getMetadata());
+		tagCompound.setInteger("ColWing", this.getWingColor().getMetadata());
+	}
 
 	@Override
 	public void writeEntityToNBT(NBTTagCompound tagCompound) {
 		tagCompound.setTag("Rotation", this.newFloatNBTList(rotationYaw, rotationPitch, rotationRoll));
 		tagCompound.setTag("MotionRotation", this.newDoubleNBTList(angVelX, angVelY, angVelZ));
 		tagCompound.setDouble("Engine", engine);
-		tagCompound.setDouble("Fuel", fuel);
+		tagCompound.setFloat("Fuel", this.getFuel());
 		
 		tagCompound.setInteger("ColFuselage", this.getFuselageColor().getMetadata());
 		tagCompound.setInteger("ColWing", this.getWingColor().getMetadata());
@@ -185,6 +208,8 @@ public abstract class EntityAirplane extends Entity {
 
 	private long tick = 0;
 
+	public float sfuel = 0;
+	
 	public float rotationRoll = 0;
 	public float prevRotationRoll = 0;
 	public double angVelX = 0.0;
@@ -196,7 +221,6 @@ public abstract class EntityAirplane extends Entity {
 	public boolean collidedX = false;
 	public boolean collidedY = false;
 	public boolean collidedZ = false;
-	public double fuel = 0;
 	public double weight = 1.0;
 
 	public Vec3 vfwd;
@@ -218,7 +242,7 @@ public abstract class EntityAirplane extends Entity {
 	public static double thrust_const = 0.02;
 	public static double controlSensitivity = 2.0;
 	public static double rotationSpeedDecay = 0.8;
-	public static double fuelCapacity = 100.0;
+	public static float fuelCapacity = 100.0f;
 	
 	public static double mouseX = 0;
 	public static double mouseY = 0;
@@ -244,8 +268,9 @@ public abstract class EntityAirplane extends Entity {
 	
 //	public EnumDyeColor FuselageColor;
 //	public EnumDyeColor WingColor;
-    private static final DataParameter<Byte> FUSELAGE_COLOR = EntityDataManager.<Byte>createKey(EntitySheep.class, DataSerializers.BYTE);
-    private static final DataParameter<Byte> WING_COLOR = EntityDataManager.<Byte>createKey(EntitySheep.class, DataSerializers.BYTE);
+    private static final DataParameter<Byte> FUSELAGE_COLOR = EntityDataManager.<Byte>createKey(EntityAirplane.class, DataSerializers.BYTE);
+    private static final DataParameter<Byte> WING_COLOR = EntityDataManager.<Byte>createKey(EntityAirplane.class, DataSerializers.BYTE);
+    private static final DataParameter<Float> FUEL_AMOUNT = EntityDataManager.<Float>createKey(EntityAirplane.class, DataSerializers.FLOAT);
 
     public EnumDyeColor getFuselageColor()
     {
@@ -267,10 +292,19 @@ public abstract class EntityAirplane extends Entity {
         this.dataManager.set(WING_COLOR, Byte.valueOf((byte) color.getMetadata()));
     }
     
+    public void setFuel(float fuel) {
+    	this.dataManager.set(FUEL_AMOUNT, Float.valueOf(fuel));
+    }
+    
+    public float getFuel() {
+    	return this.dataManager.get(FUEL_AMOUNT).floatValue();
+    }
+    
     protected void entityInit()
     {
         this.dataManager.register(FUSELAGE_COLOR, Byte.valueOf((byte)0));
         this.dataManager.register(WING_COLOR, Byte.valueOf((byte)0));
+        this.dataManager.register(FUEL_AMOUNT, 0f);
     }
     
 	public static String engineSound = "mcflight:airplane.biplane.engine";
@@ -313,11 +347,11 @@ public abstract class EntityAirplane extends Entity {
 	}
    
 	//TODO
-	// * implement refueling and gui changes
+	// * implement refueling and gui changes DONE!
 	// * Make the model look better and add rotating things DONE!
 	// * Make the sounds better DONE!
 	// * Add collision detect DONE!
-	// * Color customization
+	// * Color customization DONE!
 	// * A bit more realistic control surfaces
 	
 	public double thrusttovelfunc(double x) {
@@ -337,7 +371,14 @@ public abstract class EntityAirplane extends Entity {
 		//propPos += thrusttovelfunc(engine/thrust_const);
 		tick++;
 		//System.out.println((Math.pow(0.5, engine/5)));
-		if (!world.isRemote) {
+		if (serverSide()) {
+
+			sfuel -= engine/100.0;
+			if (sfuel < 0)
+				sfuel = 0;
+			if (tick%20 == 0)
+				this.setFuel(sfuel);
+			
 			if (this.engine > 0.0 && (tick % Math.round(10.0*(Math.pow(0.5, engine/5.0)))) == 0)
 				this.playSound(Mcflight.sound_engine, 0.4f, (float)engine/3 + 1);
 			if (this.getControllingPassenger() instanceof EntityPlayer)
@@ -346,7 +387,7 @@ public abstract class EntityAirplane extends Entity {
 				engine = 0;
 		}
 
-		if ((tick%3)==0 && world.isRemote) {
+		if ((tick%3)==0 && clientSide()) {
 			AirplaneUpdatePacket packet = new AirplaneUpdatePacket(posX, posY, posZ, engine, rotationPitch, rotationYaw, rotationRoll);
 			Mcflight.network.sendToServer(packet);
 		}
@@ -369,7 +410,7 @@ public abstract class EntityAirplane extends Entity {
 
 		//Drag
 		//bodyDragUp is basically the same thing as lift induced drag
-		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (world.isRemote && Keyboard.isKeyDown(KEYBIND_BRAKE) ? 2.0 : 1.0);
+		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE) ? 2.0 : 1.0);
 		double bodyDragUp = velocity_sq * drag_const * dragMul_vertical * Vec3.cosTheta(vel, vup);
 		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
 		drag_vec = new Vec3 (
@@ -404,7 +445,6 @@ public abstract class EntityAirplane extends Entity {
 
 		
 		//Control Surfaces
-		fuel -= engine/100.0;
 
 		prevForceElevator = forceElevator;
 		prevForceAlierons = forceAlierons;
@@ -413,7 +453,7 @@ public abstract class EntityAirplane extends Entity {
 		forceAlierons = 0.0;
 		forceRudder = 0.0;
 
-		if (world.isRemote && minecraft.player.getRidingEntity() == this) {
+		if (clientSide() && minecraft.player.getRidingEntity() == this) {
 			
 			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
 				engine = clamp(0, engine + 0.025, 1);
@@ -449,8 +489,7 @@ public abstract class EntityAirplane extends Entity {
 			}
 		}
 
-		if (fuel <= 0) {
-			fuel = 0;
+		if (this.getFuel() <= 0) {
 			engine = 0;
 		}
 		
@@ -482,7 +521,7 @@ public abstract class EntityAirplane extends Entity {
 		Vec3 motiondiff = new Vec3();
 		Vec3 angmotiondiff = new Vec3();
 		for (int i = 0; i < points.length; i++) {
-			Vec3 force = (checkCollisions(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
+			Vec3 force = (getCollisionVector(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
 			if (force != null) {
 
 				this.isOnGround = true;
@@ -599,7 +638,7 @@ public abstract class EntityAirplane extends Entity {
 
 
 			double friction = 0.01;
-			if (world.isRemote && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
+			if (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
 				friction *= 3.0;
 			}
 
@@ -613,7 +652,7 @@ public abstract class EntityAirplane extends Entity {
 			}
 		}
 
-		if (world.isRemote && minecraft.player.getRidingEntity() == this) {
+		if (clientSide() && minecraft.player.getRidingEntity() == this) {
 			double accel = Math.sqrt(
 					(motionX-prevMotionX)*(motionX-prevMotionX)+
 					(motionY-prevMotionY+gravity_const)*(motionY-prevMotionY+gravity_const)+
@@ -678,11 +717,15 @@ public abstract class EntityAirplane extends Entity {
 				prevForceAlierons+(forceAlierons-prevForceAlierons)*partialTicks);
 	}
 
-	public void onDeath(DamageSource cause)
+	@Override
+	public void setDead()
     {
-        if (world.getGameRules().getBoolean("doEntityDrops"))
+    	super.setDead();
+        if (serverSide() && world.getGameRules().getBoolean("doEntityDrops"))
         {
-           	this.dropItemWithOffset(Mcflight.item_airplane_biplane, 1, 0.0f);
+        	ItemStack planeitem = new ItemStack(Mcflight.item_airplane_biplane);
+        	this.writeEntityToItemStack(planeitem);
+           	this.entityDropItem(planeitem, 0.0f);
            	for (int i = 0; i < inv.getSizeInventory(); i++) {
            		ItemStack item = inv.getStackInSlot(i);
            		if (!item.isEmpty())
@@ -698,7 +741,7 @@ public abstract class EntityAirplane extends Entity {
         {
             return false;
         }
-        else if (!world.isRemote && !this.isDead)
+        else if (serverSide() && !this.isDead)
         {
             if (source instanceof EntityDamageSourceIndirect && source.getEntity() != null && this.isPassenger(source.getEntity()))
             {
@@ -707,7 +750,7 @@ public abstract class EntityAirplane extends Entity {
             else
             {
                 
-                boolean flag = source.getEntity() instanceof EntityPlayer && ((EntityPlayer)source.getEntity()).capabilities.isCreativeMode;
+                boolean flag = source.getEntity() instanceof EntityPlayer;// && ((EntityPlayer)source.getEntity()).capabilities.isCreativeMode;
                 
                 damage += amount;
                 
@@ -749,7 +792,7 @@ public abstract class EntityAirplane extends Entity {
 	}
 	
 	
-	public Vec3 checkCollisions(double x, double y, double z, World w) {
+	public Vec3 getCollisionVector(double x, double y, double z, World w) {
 		BlockPos pos = new BlockPos(x, y, z);
 		IBlockState state = w.getBlockState(pos);
 		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
@@ -799,11 +842,11 @@ public abstract class EntityAirplane extends Entity {
 		final Vec3 modposvec = new Vec3(mx, my, mz);
 		Vec3 floorposvec = new Vec3(Math.floor(x), Math.floor(y), Math.floor(z));
 		Vec3 center = new Vec3(avgx, avgy, avgz);
-		Vec3 out = performcollisionset(p1, modposvec, floorposvec, w);
+		Vec3 out = checkCollisionSet(p1, modposvec, floorposvec, w);
 		if (out == null) {
-			out = performcollisionset(p2, modposvec, floorposvec, w);
+			out = checkCollisionSet(p2, modposvec, floorposvec, w);
 			if (out == null) {
-				out = performcollisionset(p3, modposvec, floorposvec, w);
+				out = checkCollisionSet(p3, modposvec, floorposvec, w);
 				if (out == null) {
 					return null;
 				}
@@ -819,7 +862,7 @@ public abstract class EntityAirplane extends Entity {
 		return out;
 	}
 	
-	private Vec3 performcollisionset(Vec3[] points, final Vec3 modposvec, Vec3 floorposvec, World w) {
+	private Vec3 checkCollisionSet(Vec3[] points, final Vec3 modposvec, Vec3 floorposvec, World w) {
 		Arrays.sort(points, new Comparator<Vec3>() {
 			@Override
 			public int compare(Vec3 a, Vec3 b) {
@@ -829,7 +872,7 @@ public abstract class EntityAirplane extends Entity {
 		for (int closest = 0; closest < points.length; closest++) {
 			//Vec3 v = Vec3.add(floorposvec, center, Vec3.sub(sides[j], center).mul(1.1));
 		//	System.out.println(Vec3.distsq(points[closest], modposvec));
-			if (!isVecInside(Vec3.add(floorposvec, modposvec, Vec3.sub(points[closest], modposvec).mul(1.1)), w)) {
+			if (!isVecInsideBox(Vec3.add(floorposvec, modposvec, Vec3.sub(points[closest], modposvec).mul(1.1)), w)) {
 				Vec3 out = Vec3.sub(points[closest], modposvec);
 				return out;
 				//return new Vec3(0.0, 1.0-Mod1(y), 0.0);
@@ -838,7 +881,7 @@ public abstract class EntityAirplane extends Entity {
 		return null;
 	}
 	
-	public boolean isVecInside(Vec3 p, World w) {
+	public boolean isVecInsideBox(Vec3 p, World w) {
 		BlockPos pos = new BlockPos(p.x, p.y, p.z);
 		IBlockState state = w.getBlockState(pos);
 		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
@@ -894,7 +937,7 @@ public abstract class EntityAirplane extends Entity {
 		if (this.getControllingPassenger() != null && this.getControllingPassenger() instanceof EntityPlayer && this.getControllingPassenger() != playerIn) {
 			return true;
 		} else {
-			if (!world.isRemote) {
+			if (serverSide()) {
 				playerIn.startRiding(this);
 				mouseX = 0;
 				mouseY = 0;
@@ -909,10 +952,27 @@ public abstract class EntityAirplane extends Entity {
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, EnumHand hand)
 	{
-		if (!world.isRemote)
+		if (hand != EnumHand.MAIN_HAND)
+			return false;
+		if (serverSide())
 		{
-			if (isPaint(player.getHeldItem(hand)))
+			ItemStack i = player.getHeldItem(hand);
+			if (isPaint(i))
 				return true;
+			if (i != null)
+				System.out.println("Hello! " + i.getItem().getClass().getName());
+			else
+				System.out.println("MEOW");
+			Thread.currentThread().dumpStack();
+			if (i != null && i.getItem() instanceof Kerosene) {
+					sfuel += 20.0;
+					if (sfuel >= 100)
+						sfuel = 100;
+					this.setFuel(sfuel);
+					//i = new ItemStack(Items.BUCKET);
+					i.shrink(1);
+					return true;
+			}
 			if(player.isSneaking()) {
 				player.openGui(Mcflight.instance, 0, world, this.getEntityId(), 0, 0);
 				return true;
@@ -933,7 +993,7 @@ public abstract class EntityAirplane extends Entity {
 	/*@Override
 	public boolean processInitialInteract(EntityPlayer player, @Nullable ItemStack stack, EnumHand hand)
     {
-        if (!world.isRemote && !player.isSneaking())
+        if (serverSide() && !player.isSneaking())
         {
             player.startRiding(this);
         }
@@ -955,21 +1015,11 @@ public abstract class EntityAirplane extends Entity {
 		return  0.5;
 	}
 
-    public void setDead()
-    {
-    	super.setDead();
- /*   	if (world.isRemote) {
-    		if (this.getPassengers().size() > 0 && this.getControllingPassenger().isDead)
-    			Minecraft.getMinecraft().setIngameNotInFocus();
-    		else
-    			Minecraft.getMinecraft().setIngameFocus();
-    	}*/
-    }
     
     @Override
     public void dismountRidingEntity() {
-		System.out.println("AAA" + world.isRemote);
-    	if (world.isRemote) {
+		System.out.println("AAA" + clientSide());
+    	if (clientSide()) {
     		if (Minecraft.getMinecraft().player.isDead)
     			//Minecraft.getMinecraft().setIngameNotInFocus();
     			Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
@@ -978,6 +1028,14 @@ public abstract class EntityAirplane extends Entity {
     		}
     	}
     	super.dismountRidingEntity();
+    }
+    
+    private boolean serverSide() {
+    	return !world.isRemote;
+    }
+   
+    private boolean clientSide() {
+    	return world.isRemote;
     }
 }
 

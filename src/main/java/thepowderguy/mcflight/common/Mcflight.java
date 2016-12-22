@@ -37,6 +37,7 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
@@ -77,6 +78,7 @@ public class Mcflight {
 	public static Item item_bigfuselage;
 	public static Item item_smallfuselage;
 	public static Item item_tail;
+	public static Item item_kerosene;
 	
 	//aircraft items
 	public static Item item_airplane_biplane;
@@ -129,10 +131,11 @@ public class Mcflight {
 		item_bigfuselage = new BigFuselage().setUnlocalizedName("bigfuselage").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_smallfuselage = new SmallFuselage().setUnlocalizedName("smallfuselage").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_tail = new Tail().setUnlocalizedName("tail").setCreativeTab(tab_aircraft).setMaxStackSize(1);
+		item_kerosene = new Kerosene().setUnlocalizedName("kerosene").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 
 		item_airplane_biplane = new ItemBiplane().setUnlocalizedName("biplane").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		
-		item_paint = new AircraftPaint().setUnlocalizedName("aircraftpaint").setMaxStackSize(1);
+		item_paint = new AircraftPaint().setUnlocalizedName("aircraftpaint").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		/******* uncomment to enable oil test **********/
 
 		//Blocks.WATER
@@ -152,6 +155,7 @@ public class Mcflight {
 		GameRegistry.register(item_bigfuselage.setRegistryName("bigfuselage")		);
 		GameRegistry.register(item_smallfuselage.setRegistryName("smallfuselage")	);
 		GameRegistry.register(item_tail.setRegistryName("tail")			);
+		GameRegistry.register(item_kerosene.setRegistryName("kerosene")			);
 		
 		GameRegistry.register(item_airplane_biplane.setRegistryName("biplane"));
 		GameRegistry.register(item_paint.setRegistryName("aircraftpaint"));
@@ -199,7 +203,7 @@ public class Mcflight {
 		
 		GameRegistry.addRecipe(i(item_airplane_biplane), " p ", "dfd", " t ",
 				'p', i(item_propeller), 'd', i(item_doublewing), 'f', i(item_smallfuselage), 't', i(item_tail));
-		
+		GameRegistry.addShapelessRecipe(i(item_kerosene), (UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)));
         for (int i = 0; i < 16; ++i)
         {
            GameRegistry.addRecipe(new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});

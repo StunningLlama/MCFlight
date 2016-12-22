@@ -235,7 +235,7 @@ public class RenderAirplaneInterface extends Gui {
     	C_Y = airplane.posY;
     	C_Z = airplane.posZ;
     	B_OG = airplane.isOnGround;
-    	C_FUEL = airplane.fuel;
+    	C_FUEL = airplane.getFuel();
     	C_AIR = air;
 //    	tmpmrr = airplane.rotationRoll - airplane.prevRotationRoll;
     	C_ANGVEL = angVel;

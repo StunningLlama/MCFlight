@@ -47,6 +47,7 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_smallfuselage, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "smallfuselage", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_tail, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "tail", "inventory"));
 		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_airplane_biplane, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "biplane", "inventory"));
+		Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_kerosene, 0, new ModelResourceLocation(Mcflight.MODID + ":" + "kerosene", "inventory"));
 		for (int i = 0; i < 16; i++) {
 			Minecraft.getMinecraft().getRenderItem().getItemModelMesher().register(Mcflight.item_paint, i, new ModelResourceLocation(Mcflight.MODID + ":" + "aircraftpaint", "inventory"));
 		}
