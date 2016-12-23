@@ -16,6 +16,7 @@ import thepowderguy.mcflight.common.item.Kerosene;
 import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 import thepowderguy.mcflight.common.packet.AirplaneUpdatePacket;
 import thepowderguy.mcflight.common.world.Oil;
+import thepowderguy.mcflight.math.ControlSurface;
 import thepowderguy.mcflight.math.Mat3;
 import thepowderguy.mcflight.math.Vec3;
 import net.minecraft.block.Block;
@@ -79,7 +80,7 @@ public abstract class EntityAirplane extends Entity {
 	
 	public EntityAirplane(World worldIn) {
 		super(worldIn);
-		init(EntityBiplane.fuelCapacity);
+		init(EntityAirplane.fuelCapacity);
 	}
 	
 	private double yoffset = -1.0;
@@ -94,11 +95,11 @@ public abstract class EntityAirplane extends Entity {
         float f1 = this.height;
         this.setEntityBoundingBox(new AxisAlignedBB(x - (double)f, y + yoffset, z - (double)f, x + (double)f, y + (double)f1  + yoffset, z + (double)f));
     }
-	
+
 	public EntityAirplane(World worldIn, double x, double y, double z) {
-		this(worldIn, x, y, z, EntityBiplane.fuelCapacity);
+		this(worldIn, x, y, z, EntityAirplane.fuelCapacity);
 	}
-	
+
 	public EntityAirplane(World worldIn, double x, double y, double z, float fuel_i) {
 		super(worldIn);
 		this.setPosition(x, y, z);
@@ -107,7 +108,7 @@ public abstract class EntityAirplane extends Entity {
 	}
 	
 	
-	private void init(float fuelcap) {
+	protected void init(float fuelcap) {
 		if (serverSide()) {
 			sfuel = fuelcap;
 			this.setFuel(sfuel);
@@ -232,17 +233,17 @@ public abstract class EntityAirplane extends Entity {
 	public Vec3 thrust_vec = new Vec3(0.0, 0.0, 0.0);
 	public Vec3 gravity_vec = new Vec3(0.0, -gravity_const, 0.0);
 	
-	public static double gravity_const = 0.035;
-	public static double drag_const = 0.015;//0.025;
+	public static double gravity_const = 0.025;
+	public static double drag_const = 0.005;//0.025;
 	public static double dragMul_forward = -1.0;
 	public static double dragMul_sideways = -1.0;
 	public static double dragMul_vertical = -1.0;
-	public static double lift_const = 0.2;//0.12;
+	public static double lift_const = 0.15;//0.12;
 	public static double camber = 0;
-	public static double thrust_const = 0.02;
-	public static double controlSensitivity = 2.0;
+	public static double thrust_const = 0.01;
+	public static double controlSensitivity = 50.0;
+	public static double torqueMultiplier = 10.0;
 	public static double rotationSpeedDecay = 0.8;
-	public static float fuelCapacity = 100.0f;
 	
 	public static double mouseX = 0;
 	public static double mouseY = 0;
@@ -265,6 +266,14 @@ public abstract class EntityAirplane extends Entity {
 	double prevProppos = 0.0;
 	double propPos = 0.0;
 	double propVel = 0.0;
+
+	protected static String engineSound;
+	public String text = "";
+	protected static Vec3[] collisionPoints;
+	protected static double scale;
+	protected static Item airplaneItem;
+	protected ControlSurface[] controlSurfaces;
+	public static float fuelCapacity;
 	
 //	public EnumDyeColor FuselageColor;
 //	public EnumDyeColor WingColor;
@@ -307,21 +316,7 @@ public abstract class EntityAirplane extends Entity {
         this.dataManager.register(FUEL_AMOUNT, 0f);
     }
     
-	public static String engineSound = "mcflight:airplane.biplane.engine";
 	
-	public String text = "";
-	
-	private static Vec3[] collisionPoints;
-	static {
-		collisionPoints = new Vec3[] {
-					new Vec3(5.5, -15, 7.5),
-					new Vec3(-5.5, -15, 7.5),
-					new Vec3(0.0, -8.5, -38.5),
-					new Vec3(0.0, 0.0, 22.0),
-					new Vec3(-50.0, -5.0, 0.0),
-					new Vec3(50.0, -5.0, 0.0)
-			};
-	}
 	//packet update
 	@Override
 	@SideOnly(Side.CLIENT)
@@ -354,9 +349,11 @@ public abstract class EntityAirplane extends Entity {
 	// * Color customization DONE!
 	// * A bit more realistic control surfaces
 	
-	public double thrusttovelfunc(double x) {
+	protected double thrusttovelfunc(double x) {
 		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
 	}
+	
+	protected abstract void updateControlSurfaceNormals(Mat3 transform, double forceElevators, double forceRudder, double forceAlierons);
 	
 	public void onUpdate()
 	{
@@ -431,20 +428,6 @@ public abstract class EntityAirplane extends Entity {
 
 		inddrag_vec = Vec3.unitvector(vel).mul(-1.0 * inducedDrag / weight);
 		tmpMotion.add(inddrag_vec);
-		
-		tmpMotion.add(gravity_vec);
-		
-		motionX = tmpMotion.x;
-		motionY = tmpMotion.y;
-		motionZ = tmpMotion.z;
-		
-		velocity = Math.sqrt(motionX*motionX+motionY*motionY+motionZ*motionZ);
-		
-		
-		//Gravity
-
-		
-		//Control Surfaces
 
 		prevForceElevator = forceElevator;
 		prevForceAlierons = forceAlierons;
@@ -452,7 +435,7 @@ public abstract class EntityAirplane extends Entity {
 		forceElevator = 0.0;
 		forceAlierons = 0.0;
 		forceRudder = 0.0;
-
+		
 		if (clientSide() && minecraft.player.getRidingEntity() == this) {
 			
 			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
@@ -488,13 +471,47 @@ public abstract class EntityAirplane extends Entity {
 				
 			}
 		}
+		
+		Vec3 angVelocity = new Vec3(angVelX, angVelY, angVelZ);
+		this.updateControlSurfaceNormals(transform, -forceElevator*controlSensitivity, -forceRudder*controlSensitivity, forceAlierons*controlSensitivity);
+		for (ControlSurface cs: this.controlSurfaces) {
+			cs.applyAerodynamicForces(transform, tmpMotion, angVelocity, vel, -velocity_sq * air / weight * 0.04, this.torqueMultiplier);
+		}
+
+		/*
+		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
+		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
+				+ Vec3.dot(vel, vside)*0.5/weight
+				+ (onGround? (forceRudder*6.0*velocity):0);
+		double pitchForce = forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
+				- Vec3.dot(vel, vup)*0.5/weight;
+	
+		angVelocity = Vec3.addn(angVelocity, 
+				Vec3.mul(vfwd, rollForce),
+				Vec3.mul(vup, yawForce),
+				Vec3.mul(vside, pitchForce));*/
+
+		
+		tmpMotion.add(gravity_vec);
+		
+		
+		motionX = tmpMotion.x;
+		motionY = tmpMotion.y;
+		motionZ = tmpMotion.z;
+		
+		velocity = Math.sqrt(motionX*motionX+motionY*motionY+motionZ*motionZ);
+		
+		
+		//Gravity
+
+		
+		//Control Surfaces
 
 		if (this.getFuel() <= 0) {
 			engine = 0;
 		}
 		
 
-		Vec3 angVelocity = new Vec3(angVelX, angVelY, angVelZ);
 		
 		//Integration
 		posX += motionX;
@@ -511,7 +528,7 @@ public abstract class EntityAirplane extends Entity {
 	
 		for (int i = 0; i < points.length; i++) {
 			Vec3 coord = transform.transform(collisionPoints[i]);
-			coord.mul(RenderBiplane.scale/16.0);
+			coord.mul(scale);
 			points[i] = coord;
 		}
 		
@@ -529,7 +546,7 @@ public abstract class EntityAirplane extends Entity {
 				this.isCollidedVertically = true;
 				//double dist = 1.0-((posY+points[i].y)%1.0);
 				//if (i < 3)
-					angmotiondiff.add(Vec3.cross(points[i], force).mul(3.0));
+					angmotiondiff.add(Vec3.cross(points[i], force).mul(6));
 				//else
 				//	angmotiondiff.add(Vec3.cross(points[i], Vec3.mul(force, -1.0)).mul(3.0));
 				//if (i < 3)
@@ -550,22 +567,12 @@ public abstract class EntityAirplane extends Entity {
 		motionY += motiondiff.y;
 		motionZ += motiondiff.z;
 		angVelocity.add(angmotiondiff);
-		
-		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
-		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
-				+ Vec3.dot(vel, vside)*0.5/weight
-				+ (onGround? (forceRudder*6.0*velocity):0);
-		double pitchForce = forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
-				- Vec3.dot(vel, vup)*0.5/weight;
-	
-		angVelocity = Vec3.addn(angVelocity, 
-				Vec3.mul(vfwd, rollForce),
-				Vec3.mul(vup, yawForce),
-				Vec3.mul(vside, pitchForce));
-
-		angVelX = angVelocity.x*rotationSpeedDecay * (onGround?0.8:1.0);
-		angVelY = angVelocity.y*rotationSpeedDecay;
-		angVelZ = angVelocity.z*rotationSpeedDecay;
+		double am = 1.0;
+	//	if (isOnGround)
+	//		am = 0.5;
+		angVelX = angVelocity.x*am*rotationSpeedDecay * (onGround?0.8:1.0);
+		angVelY = angVelocity.y*am*rotationSpeedDecay;
+		angVelZ = angVelocity.z*am*rotationSpeedDecay;
 		
 		
 		double mag_lift = lift_vec.mag();
@@ -637,7 +644,7 @@ public abstract class EntityAirplane extends Entity {
 			if (motionY < 0) this.motionY *= 0;
 
 
-			double friction = 0.01;
+			double friction = 0.004;
 			if (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
 				friction *= 3.0;
 			}
@@ -712,9 +719,10 @@ public abstract class EntityAirplane extends Entity {
 
 
 	public Vec3 getInterpolatedControlSurfaces(double partialTicks) {
-		return new Vec3(prevForceRudder+(forceRudder-prevForceRudder)*partialTicks,
+		return new Vec3(
+				prevForceRudder+(forceRudder-prevForceRudder)*partialTicks,
 				prevForceElevator+(forceElevator-prevForceElevator)*partialTicks,
-				prevForceAlierons+(forceAlierons-prevForceAlierons)*partialTicks);
+				prevForceAlierons+(forceAlierons-prevForceAlierons)*partialTicks).mul(controlSensitivity);
 	}
 
 	@Override
@@ -723,7 +731,7 @@ public abstract class EntityAirplane extends Entity {
     	super.setDead();
         if (serverSide() && world.getGameRules().getBoolean("doEntityDrops"))
         {
-        	ItemStack planeitem = new ItemStack(Mcflight.item_airplane_biplane);
+        	ItemStack planeitem = new ItemStack(airplaneItem);
         	this.writeEntityToItemStack(planeitem);
            	this.entityDropItem(planeitem, 0.0f);
            	for (int i = 0; i < inv.getSizeInventory(); i++) {
@@ -771,7 +779,7 @@ public abstract class EntityAirplane extends Entity {
 	//	return sign(vel)*drag*vel*vel;
 	//}
 	
-	public double getLiftFromAlpha(double a) {
+	protected double getLiftFromAlpha(double a) {
 		if (!Double.isFinite(a))
 			return 0;
 		double x = Math.abs(a);
@@ -783,16 +791,16 @@ public abstract class EntityAirplane extends Entity {
 		return (lift[lower]*plower + lift[lower+1]*phigher)*Math.signum(a);
 	}
 
-	public double getDragFromAlpha(double a) {
+	protected double getDragFromAlpha(double a) {
 		return dSin(a/2.0)*dSin(a/2.0)*2.0;
 	}
 	
-	public double getAirDensity(double x) {
+	protected double getAirDensity(double x) {
 		return 1/(1+Math.pow(1.05, x-256));
 	}
 	
 	
-	public Vec3 getCollisionVector(double x, double y, double z, World w) {
+	protected Vec3 getCollisionVector(double x, double y, double z, World w) {
 		BlockPos pos = new BlockPos(x, y, z);
 		IBlockState state = w.getBlockState(pos);
 		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
@@ -881,7 +889,7 @@ public abstract class EntityAirplane extends Entity {
 		return null;
 	}
 	
-	public boolean isVecInsideBox(Vec3 p, World w) {
+	protected boolean isVecInsideBox(Vec3 p, World w) {
 		BlockPos pos = new BlockPos(p.x, p.y, p.z);
 		IBlockState state = w.getBlockState(pos);
 		AxisAlignedBB box = state.getBlock().getCollisionBoundingBox(state, w, pos);
@@ -971,6 +979,7 @@ public abstract class EntityAirplane extends Entity {
 					this.setFuel(sfuel);
 					//i = new ItemStack(Items.BUCKET);
 					i.shrink(1);
+					ItemHandlerHelper.giveItemToPlayer(player, new ItemStack(Items.BUCKET));
 					return true;
 			}
 			if(player.isSneaking()) {

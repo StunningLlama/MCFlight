@@ -18,6 +18,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import thepowderguy.mcflight.math.ControlSurface;
 import thepowderguy.mcflight.math.Mat3;
 import thepowderguy.mcflight.math.Vec3;
 
@@ -79,6 +80,8 @@ public class RenderBiplane extends Render
     		renderVector(entity.inddrag_vec, vertexbuffer, 255, 0, 255, vscale);
     		for (Vec3 i: entity.points)
     			renderVector(i, vertexbuffer, 255, 255, 255, 1.0);
+    		for (ControlSurface i: entity.controlSurfaces)
+    			renderVector(i.getPosition(), vertexbuffer, 0, 255, 255, 1.0);
     		tessellator.draw();
     		GL11.glLineWidth(1.0F);
     		//GlStateManager.depthMask(true);

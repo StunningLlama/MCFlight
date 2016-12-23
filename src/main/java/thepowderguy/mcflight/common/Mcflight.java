@@ -131,7 +131,7 @@ public class Mcflight {
 		item_bigfuselage = new BigFuselage().setUnlocalizedName("bigfuselage").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_smallfuselage = new SmallFuselage().setUnlocalizedName("smallfuselage").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_tail = new Tail().setUnlocalizedName("tail").setCreativeTab(tab_aircraft).setMaxStackSize(1);
-		item_kerosene = new Kerosene().setUnlocalizedName("kerosene").setCreativeTab(tab_aircraft).setMaxStackSize(1);
+		item_kerosene = new Kerosene().setUnlocalizedName("kerosene").setCreativeTab(tab_aircraft).setMaxStackSize(4);
 
 		item_airplane_biplane = new ItemBiplane().setUnlocalizedName("biplane").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		
@@ -203,8 +203,9 @@ public class Mcflight {
 		
 		GameRegistry.addRecipe(i(item_airplane_biplane), " p ", "dfd", " t ",
 				'p', i(item_propeller), 'd', i(item_doublewing), 'f', i(item_smallfuselage), 't', i(item_tail));
-		GameRegistry.addShapelessRecipe(i(item_kerosene), (UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)));
-        for (int i = 0; i < 16; ++i)
+		GameRegistry.addSmelting((UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)), i(item_kerosene), 0f);
+		ForgeModContainer.getInstance().universalBucket.setCreativeTab(tab_aircraft); // this is kind of not good, prehaps forge will implement a better method to do this
+		for (int i = 0; i < 16; ++i)
         {
            GameRegistry.addRecipe(new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
         }//
