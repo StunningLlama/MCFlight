@@ -435,7 +435,8 @@ public abstract class EntityAirplane extends Entity {
 		forceElevator = 0.0;
 		forceAlierons = 0.0;
 		forceRudder = 0.0;
-		
+
+		//Control Surfaces
 		if (clientSide() && minecraft.player.getRidingEntity() == this) {
 			
 			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
@@ -478,22 +479,8 @@ public abstract class EntityAirplane extends Entity {
 			cs.applyAerodynamicForces(transform, tmpMotion, angVelocity, vel, -velocity_sq * air / weight * 0.04, this.torqueMultiplier);
 		}
 
-		/*
-		double rollForce = forceAlierons*1.0*velocity_sq*air*controlSensitivity/weight;
-		double yawForce = forceRudder*1.0*velocity_sq*air*controlSensitivity/weight
-				+ Vec3.dot(vel, vside)*0.5/weight
-				+ (onGround? (forceRudder*6.0*velocity):0);
-		double pitchForce = forceElevator*1.0*velocity_sq*air*controlSensitivity/weight
-				- Vec3.dot(vel, vup)*0.5/weight;
-	
-		angVelocity = Vec3.addn(angVelocity, 
-				Vec3.mul(vfwd, rollForce),
-				Vec3.mul(vup, yawForce),
-				Vec3.mul(vside, pitchForce));*/
-
-		
+		//Gravity
 		tmpMotion.add(gravity_vec);
-		
 		
 		motionX = tmpMotion.x;
 		motionY = tmpMotion.y;
@@ -501,16 +488,9 @@ public abstract class EntityAirplane extends Entity {
 		
 		velocity = Math.sqrt(motionX*motionX+motionY*motionY+motionZ*motionZ);
 		
-		
-		//Gravity
-
-		
-		//Control Surfaces
-
 		if (this.getFuel() <= 0) {
 			engine = 0;
 		}
-		
 
 		
 		//Integration
@@ -1013,7 +993,12 @@ public abstract class EntityAirplane extends Entity {
 	@Override
 	public void updatePassenger(Entity passenger) {
 		if (passenger != null) {
-			passenger.setPosition(this.posX, this.posY + 0.5, this.posZ);
+			Vec3 riderPos = Vec3.mul(this.vup, -1.0);
+			passenger.setPosition(this.posX + riderPos.x, this.posY + riderPos.y, this.posZ+riderPos.z);
+			if (clientSide() && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0) {
+				Vec3 camPos = Vec3.mul(this.vup, 0.66);
+				passenger.setPosition(this.posX + camPos.x, this.posY + camPos.y - minecraft.getMinecraft().player.eyeHeight, this.posZ+camPos.z);
+			}
 			passenger.rotationYaw = -rotationYaw;
 			passenger.rotationPitch = rotationPitch;
 		}

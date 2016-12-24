@@ -45,12 +45,12 @@ public class EntityBiplane extends EntityAirplane {
 	public void init(float fuel) {
 		super.init(fuel);
 		controlSurfaces = new ControlSurface[] {
-				new ControlSurface(0.0, 0.0, -50.5, EntityBiplane.scale),
-				new ControlSurface(0.0, 0.0, -44.0, EntityBiplane.scale),
-				new ControlSurface(0.0, 6.0, -50.5, EntityBiplane.scale),
-				new ControlSurface(0.0, 6.0, -44.0, EntityBiplane.scale),
-				new ControlSurface(-23, -7.0, -11.0, EntityBiplane.scale),
-				new ControlSurface(23, -7.0, -11.0, EntityBiplane.scale),
+				new ControlSurface(0.0, 0.0, -50.5, EntityBiplane.scale, 2.0),
+				new ControlSurface(0.0, 0.0, -44.0, EntityBiplane.scale, 1.0),
+				new ControlSurface(0.0, 6.0, -50.5, EntityBiplane.scale, 2.0),
+				new ControlSurface(0.0, 6.0, -44.0, EntityBiplane.scale, 1.0),
+				new ControlSurface(-23, -7.0, -11.0, EntityBiplane.scale, 1.5),
+				new ControlSurface(23, -7.0, -11.0, EntityBiplane.scale, 1.5),
 		};
 	}
 

@@ -1,6 +1,7 @@
 package thepowderguy.mcflight.common;
 
 import thepowderguy.mcflight.client.CustomEntityRenderer;
+import thepowderguy.mcflight.client.CustomRenderPlayer;
 import thepowderguy.mcflight.client.InterfaceKeyHandler;
 import thepowderguy.mcflight.client.gui.McflightGUIHandler;
 import thepowderguy.mcflight.common.entity.*;
@@ -15,6 +16,11 @@ import thepowderguy.mcflight.common.world.BlockOil;
 import thepowderguy.mcflight.common.world.WorldGenOil;
 import unused.OilFlowing;
 import unused.OilStill;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockDynamicLiquid;
 import net.minecraft.block.BlockStaticLiquid;
@@ -26,6 +32,8 @@ import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.client.renderer.color.IItemColor;
+import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.EntityTracker;
@@ -221,7 +229,46 @@ public class Mcflight {
 
 	@EventHandler
 	public static void postInit(FMLPostInitializationEvent event) {
+		injectStuff(event.getSide());
+	}
+	
+	public static void injectStuff(Side side) {
+		if (side != Side.CLIENT)
+			return;
 		Minecraft.getMinecraft().entityRenderer = new CustomEntityRenderer(Minecraft.getMinecraft(), Minecraft.getMinecraft().getResourceManager());
+		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
+		try {
+			Field renderPlayerField = RenderManager.class.getDeclaredField("playerRenderer");
+			renderPlayerField.setAccessible(true);
+			Field modifiersField = Field.class.getDeclaredField("modifiers");
+			modifiersField.setAccessible(true);
+		    modifiersField.setInt(renderPlayerField, renderPlayerField.getModifiers() & ~Modifier.FINAL);
+		    RenderPlayer prender = new CustomRenderPlayer(rendermanager);
+		    renderPlayerField.set(rendermanager, prender);
+
+			Field playerListField = RenderManager.class.getDeclaredField("skinMap");
+			playerListField.setAccessible(true);
+			Field modifiersField2 = Field.class.getDeclaredField("modifiers");
+			modifiersField2.setAccessible(true);
+		    modifiersField2.setInt(playerListField, playerListField.getModifiers() & ~Modifier.FINAL);
+		    Map<String, RenderPlayer> map = (Map<String, RenderPlayer>) playerListField.get(rendermanager);
+		    
+		    map.put("default", prender);
+		    map.put("slim", new CustomRenderPlayer(rendermanager, true));
+		} catch (NoSuchFieldException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 	
 	public static ItemStack i(Block b)
