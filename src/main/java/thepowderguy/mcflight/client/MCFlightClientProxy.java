@@ -19,6 +19,7 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.common.entity.EntityBiplane;
 import thepowderguy.mcflight.common.entity.RenderBiplane;
 import thepowderguy.mcflight.common.item.AircraftPaint;
@@ -90,6 +91,7 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 	@Override
 	public void RegisterRenderEntities() {
 		RenderingRegistry.registerEntityRenderingHandler(EntityBiplane.class, new RenderBiplane());
+		RenderingRegistry.registerEntityRenderingHandler(EntityAirplaneCamera.class, new RenderAirplaneRider(Minecraft.getMinecraft().getRenderManager()));
 	}
 	
 	@Override

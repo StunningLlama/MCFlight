@@ -16,9 +16,10 @@ import thepowderguy.mcflight.common.item.Kerosene;
 import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 import thepowderguy.mcflight.common.packet.AirplaneUpdatePacket;
 import thepowderguy.mcflight.common.world.Oil;
-import thepowderguy.mcflight.math.ControlSurface;
-import thepowderguy.mcflight.math.Mat3;
-import thepowderguy.mcflight.math.Vec3;
+import thepowderguy.mcflight.physics.CollisionPoint;
+import thepowderguy.mcflight.physics.ControlSurface;
+import thepowderguy.mcflight.util.Mat3;
+import thepowderguy.mcflight.util.Vec3;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
@@ -60,9 +61,7 @@ import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
 
 public abstract class EntityAirplane extends Entity {
-	
-	public static double[] lift = {0.0, 0.06492615177838702, 0.12984941173838446, 0.1947553207880445, 0.25960628528830265, 0.32433000977941967, 0.38880792970742317, 0.45286364415054925, 0.5162513485456844, 0.5786442674148072, 0.6396230870914297, 0.6986643884470395, 0.7551290796175415, 0.8082508287296992, 0.8571244966275771, 0.9006945695989816, 0.9377435921019033, 0.9668805994909583, 0.9865295507438308, 0.9949177611877131, 0.9900643352257495, 0.9697685990634762, 0.931598533435264, 0.8728792063307597, 0.7906812057213275, 0.6897758258053173, 0.6501610341965861, 0.633599839734877, 0.6295064882803101, 0.6364344334189236, 0.6495190528271049, 0.6622106946333051, 0.6740955347138786, 0.6851590932219072, 0.6953878909155601, 0.7047694655804739, 0.713292387213041, 0.7209462719461079, 0.7277217947001187, 0.7336107005442869, 0.7386058147539587, 0.7427010515519081, 0.74589142152292, 0.7481730376926238, 0.7495431202631728, 0.75, 0.749543120265523, 0.7481730376973214, 0.7458914215299592, 0.7427010515612804, 0.7386058147656527, 0.7336107005582883, 0.7277217947164103, 0.7209462719646701, 0.713292387233851, 0.7047694656035066, 0.6953878909407871, 0.6851590932492979, 0.6740955347433997, 0.6622106946649206, 0.6495190528607763, 0.6360360721415066, 0.621778179442223, 0.6067627458089186, 0.5910080652345242, 0.5745333323704964, 0.5573586191410906, 0.5395048502888138, 0.5209937778808491, 0.5018479548075121, 0.48209070730502857, 0.46174610653610804, 0.44083893926294065, 0.4193946776483449, 0.3974394482218616, 0.37500000004860135, 0.35210367213962995, 0.32877836014359374, 0.30505248236016935, 0.2809549451167431, 0.25651510755050333, 0.23176274583885437, 0.2067280169217311, 0.18144142176001293, 0.1559337681748013, 0.1302361333128352, 0.10437982578377492, 0.07839634751548394, 0.05231735537378239, 0.026174622593432346, 0.0};
-	
+		
 	public InventoryBasic inv;
 //	public double drag;
 	public static int KEYBIND_THRUST_UP = Keyboard.KEY_I;
@@ -76,6 +75,7 @@ public abstract class EntityAirplane extends Entity {
 	public static int KEYBIND_BRAKE = Keyboard.KEY_Z;
 	public static int KEYBIND_LOOK = Keyboard.KEY_SPACE;
 	public static boolean useMouseInput = true;
+	private EntityAirplaneCamera cam;
 	Minecraft minecraft;
 	
 	public EntityAirplane(World worldIn) {
@@ -83,7 +83,7 @@ public abstract class EntityAirplane extends Entity {
 		init(EntityAirplane.fuelCapacity);
 	}
 	
-	private double yoffset = -1.0;
+	private double yoffset = 0.0;
 	
 	@Override
     public void setPosition(double x, double y, double z)
@@ -117,7 +117,9 @@ public abstract class EntityAirplane extends Entity {
 		this.setWingColor(EnumDyeColor.SILVER);
 		this.setSize(2.0f, 2.0f);
 		minecraft = Minecraft.getMinecraft();
+		
 		inv = new InventoryBasic("ASDF", false, 17);
+		cam = new EntityAirplaneCamera(world, this);
 	}
 
 	public boolean canBeCollidedWith()
@@ -218,7 +220,6 @@ public abstract class EntityAirplane extends Entity {
 	public double angVelZ = 0.0;
 	public double engine = 0;
 	public double velocity = 0.0;
-	public boolean isOnGround = false;
 	public boolean collidedX = false;
 	public boolean collidedY = false;
 	public boolean collidedZ = false;
@@ -234,15 +235,16 @@ public abstract class EntityAirplane extends Entity {
 	public Vec3 gravity_vec = new Vec3(0.0, -gravity_const, 0.0);
 	
 	public static double gravity_const = 0.025;
-	public static double drag_const = 0.005;//0.025;
+	public static double drag_const = 0.01;//0.025;
+	public static double friction_const = 1.0;
 	public static double dragMul_forward = -1.0;
 	public static double dragMul_sideways = -1.0;
 	public static double dragMul_vertical = -1.0;
-	public static double lift_const = 0.15;//0.12;
+	public static double lift_const = 0.04;//0.12;
 	public static double camber = 0;
 	public static double thrust_const = 0.01;
-	public static double controlSensitivity = 50.0;
-	public static double torqueMultiplier = 10.0;
+	public static double controlSensitivity = 75.0;
+	public static double torqueMultiplier = 20.0;
 	public static double rotationSpeedDecay = 0.8;
 	
 	public static double mouseX = 0;
@@ -269,7 +271,7 @@ public abstract class EntityAirplane extends Entity {
 
 	protected static String engineSound;
 	public String text = "";
-	protected static Vec3[] collisionPoints;
+	protected static CollisionPoint[] collisionPoints;
 	protected static double scale;
 	protected static Item airplaneItem;
 	protected ControlSurface[] controlSurfaces;
@@ -355,9 +357,15 @@ public abstract class EntityAirplane extends Entity {
 	
 	protected abstract void updateControlSurfaceNormals(Mat3 transform, double forceElevators, double forceRudder, double forceAlierons);
 	
+	protected abstract boolean canSteer();
+	
+	protected abstract ControlSurface getWing();
+	
 	public void onUpdate()
 	{
 		super.onUpdate();
+	//	if (world.isRemote)
+	//		this.cam.onUpdate();
 		prevRotationRoll = rotationRoll;
 		prevProppos = propPos;
 		propVel += engine*1.0;
@@ -418,7 +426,7 @@ public abstract class EntityAirplane extends Entity {
 		tmpMotion.add(drag_vec);
 		
 		//Lift
-		Vec3 out = Vec3.unitvector(Vec3.cross(vel, Vec3.cross(vup, vel)));
+		/*Vec3 out = Vec3.unitvector(Vec3.cross(vel, Vec3.cross(vup, vel)));
 		double angleOfAttack = Vec3.angle(vup, vel) - 90.0;
 		double lift = getLiftFromAlpha(angleOfAttack+camber) * lift_const * velocity_sq * air;
 		double inducedDrag = getDragFromAlpha(angleOfAttack+camber) * lift_const * velocity_sq * air;
@@ -427,7 +435,9 @@ public abstract class EntityAirplane extends Entity {
 		tmpMotion.add(lift_vec);
 
 		inddrag_vec = Vec3.unitvector(vel).mul(-1.0 * inducedDrag / weight);
-		tmpMotion.add(inddrag_vec);
+		tmpMotion.add(inddrag_vec);*/
+
+		//Control Surfaces
 
 		prevForceElevator = forceElevator;
 		prevForceAlierons = forceAlierons;
@@ -435,8 +445,7 @@ public abstract class EntityAirplane extends Entity {
 		forceElevator = 0.0;
 		forceAlierons = 0.0;
 		forceRudder = 0.0;
-
-		//Control Surfaces
+		
 		if (clientSide() && minecraft.player.getRidingEntity() == this) {
 			
 			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
@@ -473,12 +482,16 @@ public abstract class EntityAirplane extends Entity {
 			}
 		}
 		
-		Vec3 angVelocity = new Vec3(angVelX, angVelY, angVelZ);
 		this.updateControlSurfaceNormals(transform, -forceElevator*controlSensitivity, -forceRudder*controlSensitivity, forceAlierons*controlSensitivity);
-		for (ControlSurface cs: this.controlSurfaces) {
-			cs.applyAerodynamicForces(transform, tmpMotion, angVelocity, vel, -velocity_sq * air / weight * 0.04, this.torqueMultiplier);
-		}
 
+		Vec3 angVelocity = new Vec3(angVelX, angVelY, angVelZ);
+
+		double angleOfAttack = getWing().getAngleOfAttack();
+		
+		for (ControlSurface cs: this.controlSurfaces) {
+			cs.applyAerodynamicForces(transform, tmpMotion, angVelocity, vel, lift_const * velocity_sq * air / weight, this.torqueMultiplier);
+		}
+		
 		//Gravity
 		tmpMotion.add(gravity_vec);
 		
@@ -493,12 +506,15 @@ public abstract class EntityAirplane extends Entity {
 		}
 
 		
+		if (canSteer()) {
+			angVelocity.add(Vec3.mul(vup, forceRudder * velocity * 6.0));
+		}
+		
 		//Integration
 		posX += motionX;
 		posY += motionY;
 		posZ += motionZ;
 		
-		this.isOnGround = false;
 		this.onGround = false;
 		this.isCollidedVertically = false;
 		this.collidedX = false;
@@ -507,37 +523,29 @@ public abstract class EntityAirplane extends Entity {
 		points = new Vec3[collisionPoints.length];
 	
 		for (int i = 0; i < points.length; i++) {
-			Vec3 coord = transform.transform(collisionPoints[i]);
+			Vec3 coord = transform.transform(collisionPoints[i].getPosition());
 			coord.mul(scale);
 			points[i] = coord;
 		}
 		
 		//Force X Position
-		boolean allonground = true;
 		//boolean[] ongroundarr = {false, false, false};
 		Vec3 motiondiff = new Vec3();
 		Vec3 angmotiondiff = new Vec3();
 		for (int i = 0; i < points.length; i++) {
 			Vec3 force = (getCollisionVector(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
 			if (force != null) {
-
-				this.isOnGround = true;
 				this.onGround = true;
-				this.isCollidedVertically = true;
-				//double dist = 1.0-((posY+points[i].y)%1.0);
-				//if (i < 3)
-					angmotiondiff.add(Vec3.cross(points[i], force).mul(6));
-				//else
-				//	angmotiondiff.add(Vec3.cross(points[i], Vec3.mul(force, -1.0)).mul(3.0));
-				//if (i < 3)
-					motiondiff.add(Vec3.mul(force, 0.4));
-				//else
-				//	motiondiff.add(Vec3.mul(force, -0.4));
-		//		ongroundarr[i] = true;
+				collisionPoints[i].isCollided = true;
+				angmotiondiff.add(Vec3.cross(points[i], force).mul(6));
+				motiondiff.add(Vec3.mul(force, 0.4));
 			} else {
-				allonground = false;
+				collisionPoints[i].isCollided = false;
 			}
 		}
+
+		this.isCollidedVertically = this.collidedY;
+		this.isCollidedHorizontally = this.collidedX || this.collidedZ;
 		
 		//System.out.println(motiondiff.mag());
 		if (motiondiff.mag() > 0.2)
@@ -624,11 +632,17 @@ public abstract class EntityAirplane extends Entity {
 			if (motionY < 0) this.motionY *= 0;
 
 
-			double friction = 0.004;
+			double friction = 0;
+			for (CollisionPoint point: this.collisionPoints)
+				if (point.isCollided)
+					friction += point.friction;
+			
 			if (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
-				friction *= 3.0;
+				friction *= 1.5;
 			}
-
+			
+			friction *= friction_const;
+			
 			double mag = Math.sqrt(motionX*motionX+motionZ*motionZ);
 			if (mag > friction) {
 				motionX *= (mag-friction)/mag;
@@ -711,15 +725,14 @@ public abstract class EntityAirplane extends Entity {
     	super.setDead();
         if (serverSide() && world.getGameRules().getBoolean("doEntityDrops"))
         {
-        	ItemStack planeitem = new ItemStack(airplaneItem);
-        	this.writeEntityToItemStack(planeitem);
-           	this.entityDropItem(planeitem, 0.0f);
            	for (int i = 0; i < inv.getSizeInventory(); i++) {
            		ItemStack item = inv.getStackInSlot(i);
            		if (!item.isEmpty())
            			this.entityDropItem(item, 0.0f);
            	}
         }
+        if (clientSide())
+        	this.cam.setDead();
     }
    
 	@Override
@@ -744,6 +757,9 @@ public abstract class EntityAirplane extends Entity {
                 
                 if (flag || amount > 4.0)
                 {
+                	ItemStack planeitem = new ItemStack(airplaneItem);
+                	this.writeEntityToItemStack(planeitem);
+                   	this.entityDropItem(planeitem, 0.0f);
                     this.setDead();
                 }
 
@@ -758,22 +774,6 @@ public abstract class EntityAirplane extends Entity {
 	//public double getDrag(double vel, double drag) {
 	//	return sign(vel)*drag*vel*vel;
 	//}
-	
-	protected double getLiftFromAlpha(double a) {
-		if (!Double.isFinite(a))
-			return 0;
-		double x = Math.abs(a);
-		int lower = (int)Math.floor(x);
-		if (lower >= 90 || lower < 0)
-			return 0.0;
-		double phigher = x-Math.floor(x);
-		double plower = 1.0-phigher;
-		return (lift[lower]*plower + lift[lower+1]*phigher)*Math.signum(a);
-	}
-
-	protected double getDragFromAlpha(double a) {
-		return dSin(a/2.0)*dSin(a/2.0)*2.0;
-	}
 	
 	protected double getAirDensity(double x) {
 		return 1/(1+Math.pow(1.05, x-256));
@@ -995,10 +995,6 @@ public abstract class EntityAirplane extends Entity {
 		if (passenger != null) {
 			Vec3 riderPos = Vec3.mul(this.vup, -1.0);
 			passenger.setPosition(this.posX + riderPos.x, this.posY + riderPos.y, this.posZ+riderPos.z);
-			if (clientSide() && Minecraft.getMinecraft().gameSettings.thirdPersonView == 0) {
-				Vec3 camPos = Vec3.mul(this.vup, 0.66);
-				passenger.setPosition(this.posX + camPos.x, this.posY + camPos.y - minecraft.getMinecraft().player.eyeHeight, this.posZ+camPos.z);
-			}
 			passenger.rotationYaw = -rotationYaw;
 			passenger.rotationPitch = rotationPitch;
 		}
@@ -1031,5 +1027,9 @@ public abstract class EntityAirplane extends Entity {
     private boolean clientSide() {
     	return world.isRemote;
     }
+
+	public Entity getCamera() {
+		return this.cam;
+	}
 }
 

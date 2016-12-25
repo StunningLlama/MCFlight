@@ -9,30 +9,35 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
-import thepowderguy.mcflight.math.Mat3;
-import thepowderguy.mcflight.math.Vec3;
+import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
+import thepowderguy.mcflight.util.Mat3;
+import thepowderguy.mcflight.util.Vec3;
 
 public class ClientEventHandler {
 
 	public static double camroll = 0.0;
 	public boolean prevRiding = false;
-	
-	public ClientEventHandler() {}
-	
+	Minecraft mc = Minecraft.getMinecraft();
+
+	public ClientEventHandler() {
+	}
+
 	@SubscribeEvent
-	public void cam(EntityViewRenderEvent.CameraSetup event) {//Minecraft.getMinecraft().gameSettings.thirdPersonView == 0 && 
-		if ((Minecraft.getMinecraft().player.getRidingEntity() instanceof EntityAirplane)) {
-			EntityAirplane entity = (EntityAirplane) Minecraft.getMinecraft().player.getRidingEntity();
-			Vec3 rot = entity.getInterpolatedRotation((float)event.getRenderPartialTicks());
+	public void cam(EntityViewRenderEvent.CameraSetup event) {// mc.gameSettings.thirdPersonView
+																// == 0 &&
+		if ((mc.player.getRidingEntity() instanceof EntityAirplane)) {
+			EntityAirplane entity = (EntityAirplane) mc.player.getRidingEntity();
+			Vec3 rot = entity.getInterpolatedRotation((float) event.getRenderPartialTicks());
 			Mat3 basetransform = Mat3.getTransformMatrix(rot.x, rot.y, rot.z);
-			Mat3 looktransform = Mat3.getTransformMatrix(EntityAirplane.viewYawOffset, EntityAirplane.viewPitchOffset, 0);
+			Mat3 looktransform = Mat3.getTransformMatrix(EntityAirplane.viewYawOffset, EntityAirplane.viewPitchOffset,
+					0);
 			Mat3 transform = Mat3.mul(basetransform, looktransform);
 			Vec3 out = Mat3.getangles(transform);
-			event.setYaw(180-(float)out.x);
-			event.setPitch((float)out.y);
-			event.setRoll((float)out.z);
+			event.setYaw(180 - (float) out.x);
+			event.setPitch((float) out.y);
+			event.setRoll((float) out.z);
 		} else {
-			event.setRoll((float)camroll);
+			event.setRoll((float) camroll);
 		}
 	}
 
@@ -41,22 +46,24 @@ public class ClientEventHandler {
 		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane)
 			event.setDist(7.0);
 	}
+
 	@SubscribeEvent
-	public void onRenderTickActual(RenderTickEvent event)
-	{
+	public void onRenderTickActual(RenderTickEvent event) {
 		if (event.phase != TickEvent.Phase.START)
 			return;
-		
-		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD4)) camroll -= 0.5;
-		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6)) camroll += 0.5;
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD4))
+			camroll -= 0.5;
+		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6))
+			camroll += 0.5;
 
 		if (EntityAirplane.useMouseInput && isPlayerRidingAirplane()) {
-			Minecraft.getMinecraft().mouseHelper.mouseXYChange();
-			int dx = Minecraft.getMinecraft().mouseHelper.deltaX;
-			int dy = Minecraft.getMinecraft().mouseHelper.deltaY;
+			mc.mouseHelper.mouseXYChange();
+			int dx = mc.mouseHelper.deltaX;
+			int dy = mc.mouseHelper.deltaY;
 			if (Keyboard.isKeyDown(EntityAirplane.KEYBIND_LOOK)) {
-				EntityAirplane.viewYawOffset += dx/-20.0;
-				EntityAirplane.viewPitchOffset += dy/-20.0;
+				EntityAirplane.viewYawOffset += dx / -20.0;
+				EntityAirplane.viewPitchOffset += dy / -20.0;
 				EntityAirplane.viewYawOffset = EntityAirplane.clamp(-180, EntityAirplane.viewYawOffset, 180);
 				EntityAirplane.viewPitchOffset = EntityAirplane.clamp(-90, EntityAirplane.viewPitchOffset, 90);
 			} else {
@@ -69,38 +76,48 @@ public class ClientEventHandler {
 
 		}
 
-		if (Minecraft.getMinecraft().player != null) {
-			if (isPlayerRidingAirplane()){
-				if (Minecraft.getMinecraft().inGameHasFocus) {
-					Minecraft.getMinecraft().inGameHasFocus = false;
-					Minecraft.getMinecraft().mouseHelper.grabMouseCursor();
+		if (mc.player != null) {
+			if (isPlayerRidingAirplane()) {
+				if (mc.inGameHasFocus) {
+					mc.inGameHasFocus = false;
+					mc.mouseHelper.grabMouseCursor();
 				}
 			} else {
 				if (prevRiding) {
-					if (Minecraft.getMinecraft().player.isDead) {
-						if (Minecraft.getMinecraft().inGameHasFocus) {
-							Minecraft.getMinecraft().inGameHasFocus = false;
-							Minecraft.getMinecraft().mouseHelper.ungrabMouseCursor();
+					if (mc.player.isDead) {
+						if (mc.inGameHasFocus) {
+							mc.inGameHasFocus = false;
+							mc.mouseHelper.ungrabMouseCursor();
 						}
 					} else {
-						Minecraft.getMinecraft().setIngameFocus();
+						mc.setIngameFocus();
 					}
 				}
 			}
-			prevRiding = Minecraft.getMinecraft().player.getRidingEntity() instanceof EntityAirplane;
+			prevRiding = mc.player.getRidingEntity() instanceof EntityAirplane;
+		}
+
+		if (mc.player != null) {
+			if (isPlayerRidingAirplane()) {
+				if (!(mc.getRenderViewEntity() instanceof EntityAirplaneCamera)) {
+					mc.setRenderViewEntity(((EntityAirplane)mc.player.getRidingEntity()).getCamera());
+				}
+			} else if (mc.getRenderViewEntity() instanceof EntityAirplaneCamera) {
+				mc.setRenderViewEntity(mc.player);
+			}
 		}
 	}
 
 	@SubscribeEvent
-	public void onFovUpdate(FOVUpdateEvent event)
-	{
-		if (event.getEntity().getRidingEntity() instanceof EntityAirplane)
-		{
-			event.setNewfov(event.getFov() + 0.1f*(float)((EntityAirplane)event.getEntity().getRidingEntity()).velocity);
+	public void onFovUpdate(FOVUpdateEvent event) {
+		if (event.getEntity().getRidingEntity() instanceof EntityAirplane) {
+			event.setNewfov(
+					event.getFov() + 0.1f * (float) ((EntityAirplane) event.getEntity().getRidingEntity()).velocity);
 		}
 	}
 
 	private boolean isPlayerRidingAirplane() {
-		return Minecraft.getMinecraft().player != null && Minecraft.getMinecraft().player.getRidingEntity() instanceof EntityAirplane;
+		return mc.player != null
+				&& mc.player.getRidingEntity() instanceof EntityAirplane;
 	}
 }

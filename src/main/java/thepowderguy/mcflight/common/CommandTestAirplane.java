@@ -12,8 +12,8 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.math.BlockPos;
 import thepowderguy.mcflight.client.ClientEventHandler;
 import thepowderguy.mcflight.client.RenderAirplaneInterface;
-import thepowderguy.mcflight.math.Mat3;
-import thepowderguy.mcflight.math.Vec3;
+import thepowderguy.mcflight.util.Mat3;
+import thepowderguy.mcflight.util.Vec3;
 
 public class CommandTestAirplane implements ICommand {
 	List<String> aliases = new ArrayList<String>();

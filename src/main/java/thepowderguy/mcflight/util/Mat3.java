@@ -1,4 +1,4 @@
-package thepowderguy.mcflight.math;
+package thepowderguy.mcflight.util;
 
 public class Mat3 {
 	double[][] values;

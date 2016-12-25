@@ -4,7 +4,7 @@ import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
-import thepowderguy.mcflight.math.Vec3;
+import thepowderguy.mcflight.util.Vec3;
 
 // Date: 12/16/2016 10:09:13 PM
 // Template version 1.1
@@ -451,11 +451,16 @@ public class ModelBiplane extends ModelBase
         setRotation(ElevModelR, 0F, -2.725192F, 0F);
     }
 
-	public void render(EntityAirplane entity, float f, float f1, float f2, float f3, float f4, float f5, float partialTicks)
+	public void render(EntityAirplane entity, float f, float f1, float f2, float f3, float f4, float f5, float partialTicks, boolean transparent)
 	{
 		super.render(entity, f, f1, f2, f3, f4, f5);
 		setRotationAngles(f, f1, f2, f3, f4, f5, entity);
-		Vec3 controlPositions = entity.getInterpolatedControlSurfaces(partialTicks);
+		Vec3 controlPositions = entity.getInterpolatedControlSurfaces(partialTicks); 
+		if (transparent) {
+			GlStateManager.enableBlend();
+			GlStateManager.blendFunc(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE);
+		}
+		//GlStateManager.color(1f, 1f, 1f, 0.5f);
 		setControlSurfaceRotations((float)controlPositions.z, (float)controlPositions.y, (float)controlPositions.x,(float)( entity.prevProppos+(entity.propPos-entity.prevProppos)*partialTicks));
 	    SupportStrut1.render(f5);
 	    SupportStrut2.render(f5);
@@ -523,7 +528,10 @@ public class ModelBiplane extends ModelBase
 	    ElevatorRightAlt.render(f5);
 	    ElevModelL.render(f5);
 	    ElevModelR.render(f5);
-			
+
+		if (transparent) {
+			GlStateManager.disableBlend();
+		}
 	}
 
 	public void setControlSurfaceRotations(float alierons, float elevators, float rudder, float proppos) {
@@ -560,11 +568,22 @@ public class ModelBiplane extends ModelBase
 
 class BiplaneModelRenderer extends ModelRenderer {
 
+	float a = 6;
+   @Override
+   public ModelRenderer addBox(float offX, float offY, float offZ, int width, int height, int depth) {
+	   super.addBox(offX, offY+(a/16f), offZ, width, height, depth);
+	   return this;//+(100f/16f)
+   }
+   
+   @Override
+   public void setRotationPoint(float rotationPointXIn, float rotationPointYIn, float rotationPointZIn) {
+	   super.setRotationPoint(rotationPointXIn, rotationPointYIn+(a), rotationPointZIn);
+   }
 	public BiplaneModelRenderer(ModelBase model, int texOffX, int texOffY)
 	{
 		super(model, texOffX, texOffY);
 		//offsetZ = RenderBiplane.scale * -11f/16f;
-		offsetY = RenderBiplane.scale * 5f/16f;
+		//offsetY = RenderBiplane.scale * 5f/16f;
 	}
 
 }

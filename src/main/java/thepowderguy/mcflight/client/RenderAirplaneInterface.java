@@ -7,8 +7,8 @@ import org.lwjgl.opengl.GL11;
 
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityBiplane;
-import thepowderguy.mcflight.math.Mat3;
-import thepowderguy.mcflight.math.Vec3;
+import thepowderguy.mcflight.util.Mat3;
+import thepowderguy.mcflight.util.Vec3;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
@@ -165,7 +165,7 @@ public class RenderAirplaneInterface extends Gui {
 			this.drawVerticalLine((int) (cX + (yaw-i)*2.0), cY+110, cY+120, green);
 		
 		font.drawString("Fuel: " + numformat.format(100.0*C_FUEL/EntityBiplane.fuelCapacity) + "%", cX-100, cY-92, green);
-		if (!entity.isOnGround && entity.stall)
+		if (!entity.onGround && entity.stall)
 			font.drawString("\u00a7nSTALL!", cX-130, cY-92, red);
 		font.drawString("Acceleraton: " + numformat.format(acc/EntityAirplane.gravity_const) + "g", cX-20, cY-92, green);
 		
@@ -234,7 +234,7 @@ public class RenderAirplaneInterface extends Gui {
     	C_X = airplane.posX;
     	C_Y = airplane.posY;
     	C_Z = airplane.posZ;
-    	B_OG = airplane.isOnGround;
+    	B_OG = airplane.onGround;
     	C_FUEL = airplane.getFuel();
     	C_AIR = air;
 //    	tmpmrr = airplane.rotationRoll - airplane.prevRotationRoll;

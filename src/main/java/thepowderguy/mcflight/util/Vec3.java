@@ -1,4 +1,4 @@
-package thepowderguy.mcflight.math;
+package thepowderguy.mcflight.util;
 
 import net.minecraft.util.math.Vec3d;
 

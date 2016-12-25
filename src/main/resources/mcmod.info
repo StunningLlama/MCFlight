@@ -3,7 +3,7 @@
   "modid": "mcflight",
   "name": "Minecraft Flight Sim",
   "description": "It is a flight simulator for Minecraft.",
-  "version": "0.0 Beta",
+  "version": "1.0 Beta",
   "mcversion": "1.11",
   "url": "",
   "updateUrl": "",
