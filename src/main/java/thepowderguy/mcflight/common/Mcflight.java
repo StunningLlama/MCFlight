@@ -1,10 +1,11 @@
 package thepowderguy.mcflight.common;
 
-import thepowderguy.mcflight.client.CustomEntityRenderer;
-import thepowderguy.mcflight.client.CustomRenderPlayer;
 import thepowderguy.mcflight.client.InterfaceKeyHandler;
 import thepowderguy.mcflight.client.gui.McflightGUIHandler;
+import thepowderguy.mcflight.client.util.CustomEntityRenderer;
+import thepowderguy.mcflight.client.util.CustomRenderPlayer;
 import thepowderguy.mcflight.common.entity.*;
+import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.common.item.*;
 import thepowderguy.mcflight.common.packet.AirplanePacketListener;
 import thepowderguy.mcflight.common.packet.AirplaneStateListener;

@@ -1,9 +1,11 @@
-package thepowderguy.mcflight.common.entity;
+package thepowderguy.mcflight.common.entity.biplane;
 
 import net.minecraft.client.model.ModelBase;
 import net.minecraft.client.model.ModelRenderer;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.entity.Entity;
+import thepowderguy.mcflight.common.entity.AirplaneColors;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.util.Vec3;
 
 // Date: 12/16/2016 10:09:13 PM

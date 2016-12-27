@@ -15,7 +15,7 @@ import net.minecraft.util.math.BlockPos;
 import net.minecraft.world.World;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
-import thepowderguy.mcflight.common.entity.EntityBiplane;
+import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 
 public class ItemBiplane extends Item {
 

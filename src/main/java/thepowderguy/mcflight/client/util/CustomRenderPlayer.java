@@ -1,4 +1,4 @@
-package thepowderguy.mcflight.client;
+package thepowderguy.mcflight.client.util;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;

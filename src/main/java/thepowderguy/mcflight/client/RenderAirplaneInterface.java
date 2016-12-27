@@ -6,7 +6,7 @@ import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
 import thepowderguy.mcflight.common.entity.EntityAirplane;
-import thepowderguy.mcflight.common.entity.EntityBiplane;
+import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
 import net.minecraft.client.Minecraft;

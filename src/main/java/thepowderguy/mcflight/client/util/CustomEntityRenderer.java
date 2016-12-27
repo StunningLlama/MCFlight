@@ -1,4 +1,4 @@
-package thepowderguy.mcflight.client;
+package thepowderguy.mcflight.client.util;
 
 
 import com.google.common.base.Predicate;

@@ -7,7 +7,7 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import thepowderguy.mcflight.common.entity.RenderBiplane;
+import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
 
 public class InterfaceKeyHandler {
 	public static KeyBinding toggleDebug;

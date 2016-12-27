@@ -83,7 +83,7 @@ public abstract class EntityAirplane extends Entity {
 		init(EntityAirplane.fuelCapacity);
 	}
 	
-	private double yoffset = 0.0;
+	private double yoffset = -1.0;
 	
 	@Override
     public void setPosition(double x, double y, double z)
@@ -228,7 +228,6 @@ public abstract class EntityAirplane extends Entity {
 	public Vec3 vfwd;
 	public Vec3 vup;
 	public Vec3 vside;
-	public Vec3 lift_vec = new Vec3(0.0, 0.0, 0.0);
 	public Vec3 inddrag_vec = new Vec3(0.0, 0.0, 0.0);
 	public Vec3 drag_vec = new Vec3(0.0, 0.0, 0.0);
 	public Vec3 thrust_vec = new Vec3(0.0, 0.0, 0.0);
@@ -236,7 +235,7 @@ public abstract class EntityAirplane extends Entity {
 	
 	public static double gravity_const = 0.025;
 	public static double drag_const = 0.01;//0.025;
-	public static double friction_const = 1.0;
+	public static double friction_const = 0.001;
 	public static double dragMul_forward = -1.0;
 	public static double dragMul_sideways = -1.0;
 	public static double dragMul_vertical = -1.0;
@@ -255,7 +254,6 @@ public abstract class EntityAirplane extends Entity {
 	public double prevMotionX = 0;
 	public double prevMotionY = 0;
 	public double prevMotionZ = 0;
-	Vec3[] points;
 	public boolean stall = false;
 	public double damage = 0.0;
 
@@ -265,15 +263,19 @@ public abstract class EntityAirplane extends Entity {
 	double forceAlierons = 0.0;
 	double prevForceRudder = 0.0;
 	double forceRudder = 0.0;
-	double prevProppos = 0.0;
-	double propPos = 0.0;
+	public double prevProppos = 0.0;
+	public double propPos = 0.0;
 	double propVel = 0.0;
+	public boolean vectorsInitialized = false;
+	
+	public Vec3 frictionmotiondiff;
+	public Vec3 totalnormalforce;
 
 	protected static String engineSound;
 	public String text = "";
-	protected static CollisionPoint[] collisionPoints;
 	protected static double scale;
 	protected static Item airplaneItem;
+	protected CollisionPoint[] collisionPoints;
 	protected ControlSurface[] controlSurfaces;
 	public static float fuelCapacity;
 	
@@ -349,7 +351,8 @@ public abstract class EntityAirplane extends Entity {
 	// * Make the sounds better DONE!
 	// * Add collision detect DONE!
 	// * Color customization DONE!
-	// * A bit more realistic control surfaces
+	// * A bit more realistic control surfaces DONE!
+	// * Realistic friction
 	
 	protected double thrusttovelfunc(double x) {
 		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
@@ -425,62 +428,9 @@ public abstract class EntityAirplane extends Entity {
 		drag_vec.mul(1.0/weight);
 		tmpMotion.add(drag_vec);
 		
-		//Lift
-		/*Vec3 out = Vec3.unitvector(Vec3.cross(vel, Vec3.cross(vup, vel)));
-		double angleOfAttack = Vec3.angle(vup, vel) - 90.0;
-		double lift = getLiftFromAlpha(angleOfAttack+camber) * lift_const * velocity_sq * air;
-		double inducedDrag = getDragFromAlpha(angleOfAttack+camber) * lift_const * velocity_sq * air;
-		
-		lift_vec = Vec3.mul(out, lift / weight);
-		tmpMotion.add(lift_vec);
-
-		inddrag_vec = Vec3.unitvector(vel).mul(-1.0 * inducedDrag / weight);
-		tmpMotion.add(inddrag_vec);*/
-
 		//Control Surfaces
 
-		prevForceElevator = forceElevator;
-		prevForceAlierons = forceAlierons;
-		prevForceRudder = forceRudder;
-		forceElevator = 0.0;
-		forceAlierons = 0.0;
-		forceRudder = 0.0;
-		
-		if (clientSide() && minecraft.player.getRidingEntity() == this) {
-			
-			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
-				engine = clamp(0, engine + 0.025, 1);
-			
-			else if (Keyboard.isKeyDown(KEYBIND_THRUST_DOWN))
-				engine = clamp(0, engine - 0.025, 1);
-
-			if (Keyboard.isKeyDown(KEYBIND_RUDDER_LEFT))
-				forceRudder = 0.2;
-			
-			else if (Keyboard.isKeyDown(KEYBIND_RUDDER_RIGHT))
-				forceRudder = -0.2;
-
-			if  (useMouseInput) {
-
-				forceElevator = 2.5*((double)mouseY)/3000.0;
-				forceAlierons = 2.5*((double)mouseX)/4000.0;
-
-			} else {
-				
-				if (Keyboard.isKeyDown(KEYBIND_ELEVATOR_DOWN))
-					forceElevator = 0.2;
-				
-				else if (Keyboard.isKeyDown(KEYBIND_ELEVATOR_UP))
-					forceElevator = -0.2;
-				
-				if (Keyboard.isKeyDown(KEYBIND_AILERON_LEFT))
-					forceAlierons = -0.2;
-				
-				else if (Keyboard.isKeyDown(KEYBIND_AILERON_RIGHT))
-					forceAlierons = 0.2;
-				
-			}
-		}
+		this.updateControls();
 		
 		this.updateControlSurfaceNormals(transform, -forceElevator*controlSensitivity, -forceRudder*controlSensitivity, forceAlierons*controlSensitivity);
 
@@ -489,7 +439,23 @@ public abstract class EntityAirplane extends Entity {
 		double angleOfAttack = getWing().getAngleOfAttack();
 		
 		for (ControlSurface cs: this.controlSurfaces) {
-			cs.applyAerodynamicForces(transform, tmpMotion, angVelocity, vel, lift_const * velocity_sq * air / weight, this.torqueMultiplier);
+			
+			double coefficient = lift_const * velocity_sq * air / weight;
+			Vec3 out = Vec3.unitvector(Vec3.cross(vel, Vec3.cross(cs.normal, vel)));
+			angleOfAttack = Vec3.angle(cs.getNormal(), vel) - 90.0;
+			
+			double lift = cs.getLiftFromAlpha(angleOfAttack) * coefficient * cs.wingArea;
+			Vec3 lift_vec = Vec3.mul(out, lift);
+			
+			double inducedDrag = cs.getDragFromAlpha(angleOfAttack) * coefficient * cs.wingArea;
+			Vec3 inddrag_vec = Vec3.unitvector(vel).mul(-1.0 * inducedDrag);
+			
+			Vec3 force = Vec3.add(lift_vec, inddrag_vec);
+			tmpMotion.add(force);
+			cs.setForce(force);
+			Vec3 tpos = transform.transform(cs.position);
+			cs.setPosition(tpos);
+			angVelocity.add(Vec3.cross(tpos, force).mul(this.torqueMultiplier));
 		}
 		
 		//Gravity
@@ -505,7 +471,6 @@ public abstract class EntityAirplane extends Entity {
 			engine = 0;
 		}
 
-		
 		if (canSteer()) {
 			angVelocity.add(Vec3.mul(vup, forceRudder * velocity * 6.0));
 		}
@@ -520,27 +485,43 @@ public abstract class EntityAirplane extends Entity {
 		this.collidedX = false;
 		this.collidedY = false;
 		this.collidedZ = false;
-		points = new Vec3[collisionPoints.length];
+		Vec3[] points = new Vec3[collisionPoints.length];
 	
 		for (int i = 0; i < points.length; i++) {
 			Vec3 coord = transform.transform(collisionPoints[i].getPosition());
 			coord.mul(scale);
 			points[i] = coord;
+			collisionPoints[i].update(coord);
 		}
 		
+		Vec3 motion = new Vec3(motionX, motionY, motionZ);
 		//Force X Position
 		//boolean[] ongroundarr = {false, false, false};
 		Vec3 motiondiff = new Vec3();
+		frictionmotiondiff = new Vec3();
 		Vec3 angmotiondiff = new Vec3();
+		totalnormalforce = new Vec3();
+
+		boolean brakedown = (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE));
 		for (int i = 0; i < points.length; i++) {
-			Vec3 force = (getCollisionVector(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
-			if (force != null) {
+			Vec3 collisionVec = (getCollisionVector(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
+			if (collisionVec != null) {
 				this.onGround = true;
 				collisionPoints[i].isCollided = true;
-				angmotiondiff.add(Vec3.cross(points[i], force).mul(6));
-				motiondiff.add(Vec3.mul(force, 0.4));
+				Vec3 normal = Vec3.mul(collisionVec, 0.4);
+				angmotiondiff.add(Vec3.cross(points[i], normal).mul(15));
+				motiondiff.add(normal);
+				
+				double brake_multiplier = brakedown? collisionPoints[i].brakeMul: 1.0;
+				totalnormalforce.add(collisionVec);
+				Vec3 fcDirection = Vec3.cross(collisionVec, Vec3.cross(collisionVec, motion)).unitvector();
+				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction;
+				Vec3 friction = fcDirection.mul(fcMag);
+				frictionmotiondiff.add(friction);
+				collisionPoints[i].setForce(Vec3.add(fcDirection, normal));
 			} else {
 				collisionPoints[i].isCollided = false;
+				collisionPoints[i].setForce(new Vec3());
 			}
 		}
 
@@ -550,10 +531,25 @@ public abstract class EntityAirplane extends Entity {
 		//System.out.println(motiondiff.mag());
 		if (motiondiff.mag() > 0.2)
 			motiondiff = Vec3.mul(motiondiff, 0.2/motiondiff.mag());
+
 		
 		motionX += motiondiff.x;
 		motionY += motiondiff.y;
 		motionZ += motiondiff.z;
+		
+		motion = new Vec3(motionX, motionY, motionZ);
+
+		Vec3 newMotion = Vec3.add(motion, frictionmotiondiff);
+		Vec3 fcNormalDirection = Vec3.cross(totalnormalforce, Vec3.cross(totalnormalforce, motion));
+		if (Vec3.dot(fcNormalDirection, newMotion) > 0.0) {
+			newMotion.set(Vec3.proj(newMotion, Vec3.cross(motion, totalnormalforce), totalnormalforce));
+		} else {
+			//resultingMotion.set(resultingMotion);
+		}
+		motionX = newMotion.x;
+		motionY = newMotion.y;
+		motionZ = newMotion.z;
+		
 		angVelocity.add(angmotiondiff);
 		double am = 1.0;
 	//	if (isOnGround)
@@ -563,12 +559,12 @@ public abstract class EntityAirplane extends Entity {
 		angVelZ = angVelocity.z*am*rotationSpeedDecay;
 		
 		
-		double mag_lift = lift_vec.mag();
+		//double mag_lift = lift_vec.mag();
 		double mag_drag = drag_vec.mag();
 		double mag_inddrag = inddrag_vec.mag();
 		double mag_thrust = thrust_vec.mag();
 
-		if (mag_lift > 1.0) System.out.println("LIFT IS " + mag_lift);
+		//if (mag_lift > 1.0) System.out.println("LIFT IS " + mag_lift);
 		if (mag_drag > 1.0) System.out.println("DRAG IS " + mag_drag);
 		if (mag_inddrag > 1.0) System.out.println("IND DRAG IS " + mag_inddrag);
 		if (mag_thrust > 1.0) System.out.println("THRUST IS " + mag_thrust);
@@ -626,31 +622,9 @@ public abstract class EntityAirplane extends Entity {
 			double tmpXX = dSin(this.rotationYaw);
 			double tmpZZ = dCos(this.rotationYaw);
 			double dotp = zeroIfNaN(motionX*tmpXX + motionZ*tmpZZ);
-			//double magdiff = motionX*(1-Math.abs(dotp));
+			
 			motionX = tmpXX*Math.abs(dotp);
 			motionZ = tmpZZ*Math.abs(dotp);
-			if (motionY < 0) this.motionY *= 0;
-
-
-			double friction = 0;
-			for (CollisionPoint point: this.collisionPoints)
-				if (point.isCollided)
-					friction += point.friction;
-			
-			if (clientSide() && Keyboard.isKeyDown(KEYBIND_BRAKE)) {
-				friction *= 1.5;
-			}
-			
-			friction *= friction_const;
-			
-			double mag = Math.sqrt(motionX*motionX+motionZ*motionZ);
-			if (mag > friction) {
-				motionX *= (mag-friction)/mag;
-				motionZ *= (mag-friction)/mag;
-			} else {
-				motionX = 0.0;
-				motionZ = 0.0;
-			}
 		}
 
 		if (clientSide() && minecraft.player.getRidingEntity() == this) {
@@ -659,7 +633,7 @@ public abstract class EntityAirplane extends Entity {
 					(motionY-prevMotionY+gravity_const)*(motionY-prevMotionY+gravity_const)+
 					(motionZ-prevMotionZ)*(motionZ-prevMotionZ));
 			//Vector fdelta = new Vector(motionX-prevMotionX, motionY-prevMotionY, motionZ-prevMotionZ);
-			RenderAirplaneInterface.instance.setDebugVars(velocity, angleOfAttack, mag_lift, mag_drag, mag_inddrag, mag_thrust, air, angVelocity.mag(), this);
+			RenderAirplaneInterface.instance.setDebugVars(velocity, angleOfAttack, 0f, mag_drag, mag_inddrag, mag_thrust, air, angVelocity.mag(), this);
 			RenderAirplaneInterface.instance.setVars(velocity, accel, this.posY, rotationPitch, rotationYaw, rotationRoll);
 		}
 
@@ -685,8 +659,60 @@ public abstract class EntityAirplane extends Entity {
 		prevMotionX = motionX;
 		prevMotionY = motionY;
 		prevMotionZ = motionZ;
+		
+		if (clientSide())
+			cam.updatePositions();
+		
+		vectorsInitialized = true;
 	}
+	
+	public void updateControls() {
 
+		prevForceElevator = forceElevator;
+		prevForceAlierons = forceAlierons;
+		prevForceRudder = forceRudder;
+		forceElevator = 0.0;
+		forceAlierons = 0.0;
+		forceRudder = 0.0;
+		
+		if (clientSide() && minecraft.player.getRidingEntity() == this) {
+			
+			if (Keyboard.isKeyDown(KEYBIND_THRUST_UP))
+				engine = clamp(0, engine + 0.025, 1);
+			
+			else if (Keyboard.isKeyDown(KEYBIND_THRUST_DOWN))
+				engine = clamp(0, engine - 0.025, 1);
+
+			if (Keyboard.isKeyDown(KEYBIND_RUDDER_LEFT))
+				forceRudder = 0.2;
+			
+			else if (Keyboard.isKeyDown(KEYBIND_RUDDER_RIGHT))
+				forceRudder = -0.2;
+
+			if  (useMouseInput) {
+
+				forceElevator = 2.5*((double)mouseY)/3000.0;
+				forceAlierons = 2.5*((double)mouseX)/4000.0;
+
+			} else {
+				
+				if (Keyboard.isKeyDown(KEYBIND_ELEVATOR_DOWN))
+					forceElevator = 0.2;
+				
+				else if (Keyboard.isKeyDown(KEYBIND_ELEVATOR_UP))
+					forceElevator = -0.2;
+				
+				if (Keyboard.isKeyDown(KEYBIND_AILERON_LEFT))
+					forceAlierons = -0.2;
+				
+				else if (Keyboard.isKeyDown(KEYBIND_AILERON_RIGHT))
+					forceAlierons = 0.2;
+				
+			}
+		}
+		
+	}
+	
 	@Nullable
 	public Entity getControllingPassenger()
 	{
@@ -947,11 +973,6 @@ public abstract class EntityAirplane extends Entity {
 			ItemStack i = player.getHeldItem(hand);
 			if (isPaint(i))
 				return true;
-			if (i != null)
-				System.out.println("Hello! " + i.getItem().getClass().getName());
-			else
-				System.out.println("MEOW");
-			Thread.currentThread().dumpStack();
 			if (i != null && i.getItem() instanceof Kerosene) {
 					sfuel += 20.0;
 					if (sfuel >= 100)

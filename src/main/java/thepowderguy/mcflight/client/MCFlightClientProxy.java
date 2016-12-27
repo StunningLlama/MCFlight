@@ -20,8 +20,8 @@ import net.minecraftforge.fml.common.FMLCommonHandler;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
-import thepowderguy.mcflight.common.entity.EntityBiplane;
-import thepowderguy.mcflight.common.entity.RenderBiplane;
+import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
+import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
 import thepowderguy.mcflight.common.item.AircraftPaint;
 
 public class MCFlightClientProxy extends MCFlightCommonProxy {

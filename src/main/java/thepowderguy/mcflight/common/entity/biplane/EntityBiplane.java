@@ -1,9 +1,10 @@
-package thepowderguy.mcflight.common.entity;
+package thepowderguy.mcflight.common.entity.biplane;
 
 import net.minecraft.entity.SharedMonsterAttributes;
 import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.physics.AerofoilBasic;
 import thepowderguy.mcflight.physics.AerofoilCtrlSuface;
 import thepowderguy.mcflight.physics.AerofoilWing;
@@ -24,14 +25,6 @@ public class EntityBiplane extends EntityAirplane {
 	
 	static {
 		engineSound = "mcflight:airplane.biplane.engine";
-		collisionPoints = new CollisionPoint[] {
-					new CollisionPoint(5.5, -16, 7.5, 0.0004),
-					new CollisionPoint(-5.5, -16, 7.5, 0.0004),
-					new CollisionPoint(0.0, -9.0, -49.0, 0.0004),
-					new CollisionPoint(0.0, 0.0, 22.0, 0.001),
-					new CollisionPoint(-50.0, -5.0, 0.0, 0.001),
-					new CollisionPoint(50.0, -5.0, 0.0, 0.001)
-			};
 		scale = RenderBiplane.scale/16.0;
 		airplaneItem = Mcflight.item_airplane_biplane;
 		fuelCapacity = 100.0f;
@@ -57,6 +50,14 @@ public class EntityBiplane extends EntityAirplane {
 				new AerofoilBasic(0.0, 6.0, -44.0, EntityBiplane.scale, 0.2),
 				new AerofoilCtrlSuface(-23, -7.0, -11.0, EntityBiplane.scale, 0.2),
 				new AerofoilCtrlSuface(23, -7.0, -11.0, EntityBiplane.scale, 0.2),
+		};
+		collisionPoints = new CollisionPoint[] {
+				new CollisionPoint(5.5, -16, 7.5, 0.4, 3.0),
+				new CollisionPoint(-5.5, -16, 7.5, 0.4, 3.0),
+				new CollisionPoint(0.0, -9.0, -49.0, 0.4, 1.0),
+				new CollisionPoint(0.0, 0.0, 22.0, 1, 1.0),
+				new CollisionPoint(-50.0, -5.0, 0.0, 1, 1.0),
+				new CollisionPoint(50.0, -5.0, 0.0, 1, 1.0)
 		};
 	}
 

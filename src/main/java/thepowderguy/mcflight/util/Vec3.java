@@ -105,7 +105,7 @@ public class Vec3 {
 	public static Vec3 proj(Vec3 x, Vec3 a, Vec3 b) {
 		Vec3 norm = Vec3.cross(a, b);
 		norm = Vec3.unitvector(norm);
-		return Vec3.sub(x, Vec3.mul(x, Vec3.dot(x, norm)));
+		return Vec3.sub(x, Vec3.mul(norm, Vec3.dot(x, norm)));
 	}
 	
 	public static Vec3 mul(Vec3 a, double b) {
@@ -118,6 +118,10 @@ public class Vec3 {
 		return Vec3.mul(a, 1.0/a.mag());
 	}
 
+	public Vec3 unitvector() {
+		return Vec3.unitvector(this);
+	}
+	
 	private static double dSin(double a) {
 		return Math.sin(Math.toRadians(a));
 	}
@@ -148,6 +152,11 @@ public class Vec3 {
 	public Vec3d toVec3d() {
 		return new Vec3d(x, y, z);
 	}
+	
+	public static Vec3 interpolate(Vec3 a, Vec3 b, float partialTicks) {
+		return new Vec3(a.x + (b.x-a.x)*partialTicks, a.y + (b.y-a.y)*partialTicks, a.z + (b.z-a.z)*partialTicks);
+	}
+	
 	@Override
 	public String toString() {
 		return "(" + x + ", " + y + ", " + z + ")";

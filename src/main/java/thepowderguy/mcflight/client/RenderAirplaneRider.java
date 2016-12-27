@@ -20,8 +20,8 @@ public class RenderAirplaneRider extends RenderEntity {
 
 	@Override
 	public void doRender(Entity entity, double x, double y, double z, float entityYaw, float partialTicks) {
-		super.doRender(entity, x, entityYaw, z, entityYaw, partialTicks);
-	//	return;
+	//	super.doRender(entity, x, entityYaw, z, entityYaw, partialTicks);
+		return;
 	}
 
 }

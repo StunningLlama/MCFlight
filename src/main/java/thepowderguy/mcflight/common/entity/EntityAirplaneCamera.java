@@ -38,6 +38,22 @@ public class EntityAirplaneCamera extends Entity {
 	
 	@Override
 	public void onUpdate() {
+		
+	}
+
+    public float getEyeHeight()
+    {
+    	return 0f;
+    }
+    public boolean hasPlayer() {
+    	return ent.getControllingPassenger() != null;
+    }
+    public AbstractClientPlayer getPlayer() {
+    	return (AbstractClientPlayer)ent.getControllingPassenger();
+    }
+    
+    public void updatePositions() {
+
 		//super.onUpdate();
 		this.lastTickPosX = this.posX;
 		this.lastTickPosY = this.posY;
@@ -59,16 +75,5 @@ public class EntityAirplaneCamera extends Entity {
 				//System.out.println(this.posX  + " " + this.posY + " " + this.posZ);
 			}
 		}
-	}
-
-    public float getEyeHeight()
-    {
-    	return 0f;
-    }
-    public boolean hasPlayer() {
-    	return ent.getControllingPassenger() != null;
-    }
-    public AbstractClientPlayer getPlayer() {
-    	return (AbstractClientPlayer)ent.getControllingPassenger();
     }
 }
