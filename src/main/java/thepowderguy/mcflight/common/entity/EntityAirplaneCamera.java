@@ -169,41 +169,14 @@ public class EntityAirplaneCamera extends Entity {
 				this.rotationPitch = (float)out.y;
 				this.rotationRoll = (float)out.z;
 				
-				
-
-				if (rotationYaw < -180.0) {
-					rotationYaw += 360;
+				if (rotationYaw-prevRotationYaw > 180)
 					prevRotationYaw += 360;
-				}
-				if (rotationYaw > 180.0) {
-					rotationYaw -= 360;
-					prevRotationYaw -= 360;
-				}
-				if (rotationRoll < -180.0) {
-					rotationRoll += 360;
+				if (rotationYaw-prevRotationYaw < -180)
+					prevRotationYaw += -360;
+				if (rotationRoll-prevRotationRoll > 180)
 					prevRotationRoll += 360;
-				}
-				if (rotationRoll > 180.0) {
-					rotationRoll -= 360;
-					prevRotationRoll -= 360;
-				}
-
-				if (rotationPitch < -90.0) {
-					rotationPitch = -180 - rotationPitch;
-					rotationYaw = -rotationYaw;
-					rotationRoll = -rotationRoll;
-					prevRotationPitch = -180 - prevRotationPitch;
-					prevRotationYaw = -prevRotationYaw;
-					prevRotationRoll = -prevRotationRoll;
-				}
-				if (rotationPitch > 90.0) {
-					rotationPitch = 180 - rotationPitch;
-					rotationYaw = -rotationYaw;
-					rotationRoll = -rotationRoll;
-					prevRotationPitch = 180 - prevRotationPitch;
-					prevRotationYaw = -prevRotationYaw;
-					prevRotationRoll = -prevRotationRoll;
-				}
+				if (rotationRoll-prevRotationRoll < -180)
+					prevRotationRoll += -360;
 			}
 		}
     }

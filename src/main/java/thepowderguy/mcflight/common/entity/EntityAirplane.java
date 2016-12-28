@@ -460,6 +460,7 @@ public abstract class EntityAirplane extends Entity {
 				mag_lift = lift;
 				mag_inddrag = inducedDrag;
 				angleOfAttackWing = angleOfAttack;
+				stall = cs.isStalled();
 			}
 		}
 		
@@ -605,12 +606,6 @@ public abstract class EntityAirplane extends Entity {
 			motionZ *= 0.8;
 		}
 
-		if (Math.abs(angleOfAttackWing) > 21.0) {
-			stall = true;
-		} else {
-			stall = false;
-		}
-
 
 		//Turning on ground
 		if (this.onGround)
@@ -636,28 +631,24 @@ public abstract class EntityAirplane extends Entity {
 
 		//velYaw *= (isOnGround? 0.85: 1.0);
 		//Rotation modular arithmetic
-		if (rotationYaw < -180.0) rotationYaw += 360;
-		if (rotationYaw > 180.0) rotationYaw -= 360;
-		if (rotationRoll < -180.0) rotationRoll += 360;
-		if (rotationRoll > 180.0) rotationRoll -= 360;
+		if (clientSide())
+			cam.updatePositions(this.getControllingPassenger() == Minecraft.getMinecraft().player, transform);
 
-		if (rotationPitch < -90.0) {
-			rotationPitch = -180 - rotationPitch;
-			rotationYaw = -rotationYaw;
-			rotationRoll = -rotationRoll;
-		}
-		if (rotationPitch > 90.0) {
-			rotationPitch = 180 - rotationPitch;
-			rotationYaw = -rotationYaw;
-			rotationRoll = -rotationRoll;
-		}
+
+		if (rotationYaw-prevRotationYaw > 180)
+			prevRotationYaw += 360;
+		if (rotationYaw-prevRotationYaw < -180)
+			prevRotationYaw += -360;
+		if (rotationRoll-prevRotationRoll > 180)
+			prevRotationRoll += 360;
+		if (rotationRoll-prevRotationRoll < -180)
+			prevRotationRoll += -360;
+		
 
 		prevMotionX = motionX;
 		prevMotionY = motionY;
 		prevMotionZ = motionZ;
 		
-		if (clientSide())
-			cam.updatePositions(this.getControllingPassenger() == Minecraft.getMinecraft().player, transform);
 		
 		vectorsInitialized = true;
 	}
