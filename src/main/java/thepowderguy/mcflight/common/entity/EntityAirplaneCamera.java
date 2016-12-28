@@ -28,6 +28,9 @@ public class EntityAirplaneCamera extends Entity {
 	static CameraView view_wing_R = new CameraView();
 	static CameraView view_passenger = new CameraView();
 	
+	public static float min_zoom = 1.0f;
+	public static float max_zoom = 10.0f;
+	
 	public static CameraView[] views = new CameraView[] {
 		view_cockpit  ,
 		view_tail     ,
@@ -104,22 +107,14 @@ public class EntityAirplaneCamera extends Entity {
 
 			if (isPlayerRiding) {
 				Minecraft mc = Minecraft.getMinecraft();
-				mc.mouseHelper.mouseXYChange();
-				int dx = mc.mouseHelper.deltaX;
-				int dy = mc.mouseHelper.deltaY;
 				if (Mcflight.keyhandler.look_around.isKeyDown()) {
+					mc.mouseHelper.mouseXYChange();
+					int dx = mc.mouseHelper.deltaX;
+					int dy = mc.mouseHelper.deltaY;
 					views[Mcflight.keyhandler.camera_mode].viewYawOffset += dx / -20.0;
 					views[Mcflight.keyhandler.camera_mode].viewPitchOffset += dy / -20.0;
 					views[Mcflight.keyhandler.camera_mode].viewYawOffset = EntityAirplane.clamp(-180, views[Mcflight.keyhandler.camera_mode].viewYawOffset, 180);
 					views[Mcflight.keyhandler.camera_mode].viewPitchOffset = EntityAirplane.clamp(-90, views[Mcflight.keyhandler.camera_mode].viewPitchOffset, 90);
-				} else {
-					if (dx != 0 || dy != 0) {
-						EntityAirplane.useMouseInput = true;
-					}
-					EntityAirplane.mouseX += dx;
-					EntityAirplane.mouseY += dy;
-					EntityAirplane.mouseY = EntityAirplane.clamp(-280, EntityAirplane.mouseY, 280);
-					EntityAirplane.mouseX = EntityAirplane.clamp(-400, EntityAirplane.mouseX, 400);
 				}
 				int view_id = Mcflight.keyhandler.camera_mode;
 				Mat3 basetransform = null;
@@ -173,6 +168,42 @@ public class EntityAirplaneCamera extends Entity {
 				this.rotationYaw = (float)out.x;
 				this.rotationPitch = (float)out.y;
 				this.rotationRoll = (float)out.z;
+				
+				
+
+				if (rotationYaw < -180.0) {
+					rotationYaw += 360;
+					prevRotationYaw += 360;
+				}
+				if (rotationYaw > 180.0) {
+					rotationYaw -= 360;
+					prevRotationYaw -= 360;
+				}
+				if (rotationRoll < -180.0) {
+					rotationRoll += 360;
+					prevRotationRoll += 360;
+				}
+				if (rotationRoll > 180.0) {
+					rotationRoll -= 360;
+					prevRotationRoll -= 360;
+				}
+
+				if (rotationPitch < -90.0) {
+					rotationPitch = -180 - rotationPitch;
+					rotationYaw = -rotationYaw;
+					rotationRoll = -rotationRoll;
+					prevRotationPitch = -180 - prevRotationPitch;
+					prevRotationYaw = -prevRotationYaw;
+					prevRotationRoll = -prevRotationRoll;
+				}
+				if (rotationPitch > 90.0) {
+					rotationPitch = 180 - rotationPitch;
+					rotationYaw = -rotationYaw;
+					rotationRoll = -rotationRoll;
+					prevRotationPitch = 180 - prevRotationPitch;
+					prevRotationYaw = -prevRotationYaw;
+					prevRotationRoll = -prevRotationRoll;
+				}
 			}
 		}
     }

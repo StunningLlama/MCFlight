@@ -63,6 +63,19 @@ public class ClientEventHandler {
 		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6))
 			camroll += 0.5;
 
+		if (isPlayerRidingAirplane() && !Mcflight.keyhandler.look_around.isKeyDown()) {
+			mc.mouseHelper.mouseXYChange();
+			int dx = mc.mouseHelper.deltaX;
+			int dy = mc.mouseHelper.deltaY;
+			if (dx != 0 || dy != 0) {
+				EntityAirplane.useMouseInput = true;
+			}
+			EntityAirplane.mouseX += dx;
+			EntityAirplane.mouseY += dy;
+			EntityAirplane.mouseY = EntityAirplane.clamp(-280, EntityAirplane.mouseY, 280);
+			EntityAirplane.mouseX = EntityAirplane.clamp(-400, EntityAirplane.mouseX, 400);
+		}
+
 		if (mc.player != null) {
 			if (isPlayerRidingAirplane()) {
 				if (mc.inGameHasFocus) {

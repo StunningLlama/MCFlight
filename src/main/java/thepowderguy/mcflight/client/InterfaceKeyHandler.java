@@ -7,6 +7,9 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
+import thepowderguy.mcflight.common.entity.CameraView;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
+import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
 
 public class InterfaceKeyHandler {
@@ -19,6 +22,8 @@ public class InterfaceKeyHandler {
 	public KeyBinding toggleVector;
 	public KeyBinding toggleHud;
 	public KeyBinding changeCamera;
+	public KeyBinding zoom_in;
+	public KeyBinding zoom_out;
 	public KeyBinding alieron_cw	;
 	public KeyBinding alieron_ccw  ;
 	public KeyBinding elevator_up  ;
@@ -35,6 +40,8 @@ public class InterfaceKeyHandler {
 		toggleDebug   = new KeyBinding("key.airplanedebug", Keyboard.KEY_F9, "key.categories.mcflight");
 		toggleVector  = new KeyBinding("key.airplaneshowvectors", Keyboard.KEY_F10, "key.categories.mcflight");
 		toggleHud  	= new KeyBinding("key.airplaneshowhud", Keyboard.KEY_F8, "key.categories.mcflight");
+		zoom_in  = new KeyBinding("key.zoomin", Keyboard.KEY_EQUALS, "key.categories.mcflight");
+		zoom_out  	= new KeyBinding("key.zoomout", Keyboard.KEY_MINUS, "key.categories.mcflight");
 		alieron_cw	  = new KeyBinding("key.alieron_cw", Keyboard.KEY_LEFT, "key.categories.mcflight");
 		alieron_ccw   = new KeyBinding("key.alieron_ccw", Keyboard.KEY_RIGHT, "key.categories.mcflight");
 		elevator_up   = new KeyBinding("key.elevator_up", Keyboard.KEY_UP, "key.categories.mcflight");
@@ -50,6 +57,8 @@ public class InterfaceKeyHandler {
 		ClientRegistry.registerKeyBinding(toggleVector);
 		ClientRegistry.registerKeyBinding(toggleDebug);
 		ClientRegistry.registerKeyBinding(toggleHud);
+		ClientRegistry.registerKeyBinding(zoom_in   );
+		ClientRegistry.registerKeyBinding(zoom_out	);   
 		ClientRegistry.registerKeyBinding(alieron_ccw   );
 		ClientRegistry.registerKeyBinding(alieron_cw	);   
 		ClientRegistry.registerKeyBinding(elevator_up   );
@@ -80,5 +89,22 @@ public class InterfaceKeyHandler {
 		if (changeCamera.isPressed()) {
 			camera_mode = (camera_mode+1)%6;
 		}
+		if (zoom_in.isPressed()) {
+			CameraView view = EntityAirplaneCamera.views[camera_mode];
+			view.zoom += 0.5;
+			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
+		}
+		if (zoom_out.isPressed()) {
+			CameraView view = EntityAirplaneCamera.views[camera_mode];
+			view.zoom -= 0.5;
+			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
+		}
+	}
+	
+
+	public static float clamp(float min, float val, float max) {
+		if (val < min) return min;
+		if (val > max) return max;
+		return val;
 	}
 }

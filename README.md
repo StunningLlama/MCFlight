@@ -4,6 +4,9 @@ MCFlight is a forge mod written by thepowderguy that is a (somewhat) realistic f
 ##Instructions:
 Airplanes can be controlled with either a mouse, or keyboard. The mod automatically switches between the two. If using a mouse, the mouse controls alierons and elevators. J and L controls rudder, Up and Down controls the elevators, and Left and Right controls alierons.
 
+##Airplane:
+Airplanes can be placed on the ground and ridden by clicking on them. They will explode if they hit the ground or any object at more than 36 km/h. They have an inventory that can be accessed by shift clicking on them.
+
 ##Keyboard Controls:
 I: Throttle up  
 K: Throttle down  
@@ -34,6 +37,9 @@ Tail: Looking from the tail of the aircraft
 Follow: Following the aircraft  
 Wing (Left & Right): A camera placed at the wing of the aircraft  
 Passenger: A view from further in the back of the fuselage.  
+
+##Crafting recipes:
+Todo
 
 ##To help me develop this mod:
 1. Set up a forge workspace

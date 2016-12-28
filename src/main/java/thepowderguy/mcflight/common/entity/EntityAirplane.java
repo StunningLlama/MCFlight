@@ -111,7 +111,8 @@ public abstract class EntityAirplane extends Entity {
 		minecraft = Minecraft.getMinecraft();
 		
 		inv = new InventoryBasic("ASDF", false, 17);
-		cam = new EntityAirplaneCamera(world, this);
+		if (clientSide())
+			cam = new EntityAirplaneCamera(world, this);
 	}
 
 	public boolean canBeCollidedWith()
@@ -343,7 +344,11 @@ public abstract class EntityAirplane extends Entity {
 	// * Color customization DONE!
 	// * A bit more realistic control surfaces DONE!
 	// * Realistic friction DONE!
-	// * More camera types
+	// * More camera types DONE!
+	
+	// Bugs:
+	// visual glitch when yaw goes from -180 to 180 or vice versa
+	// It is hard to get off airplanes sometimes
 	
 	protected double thrusttovelfunc(double x) {
 		return 0.1*Math.log(100.0*x+1.0)/Math.log(100.0+1.0);
