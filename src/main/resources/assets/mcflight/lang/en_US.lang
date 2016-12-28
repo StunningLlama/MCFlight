@@ -7,6 +7,41 @@ item.bigfuselage.name=Large Fuselage
 item.smallfuselage.name=Small Fuselage
 item.tail.name=Aircraft Tail
 item.biplane.name=Biplane
+item.kerosene.name=Kerosene
+fluid.oil=Crude Oil
+
+item.aircraftpaint.name=Aircraft Paint
+item.aircraftpaint.black.name=Black Aircraft Paint
+item.aircraftpaint.red.name=Red Aircraft Paint
+item.aircraftpaint.green.name=Green Aircraft Paint
+item.aircraftpaint.brown.name=Brown Aircraft Paint
+item.aircraftpaint.blue.name=Blue Aircraft Paint
+item.aircraftpaint.purple.name=Purple Aircraft Paint
+item.aircraftpaint.cyan.name=Cyan Aircraft Paint
+item.aircraftpaint.silver.name=Light Gray Aircraft Paint
+item.aircraftpaint.gray.name=Gray Aircraft Paint
+item.aircraftpaint.pink.name=Pink Aircraft Paint
+item.aircraftpaint.lime.name=Lime Aircraft Paint
+item.aircraftpaint.yellow.name=Yellow Aircraft Paint
+item.aircraftpaint.lightBlue.name=Light Blue Aircraft Paint
+item.aircraftpaint.magenta.name=Magenta Aircraft Paint
+item.aircraftpaint.orange.name=Orange Aircraft Paint
+item.aircraftpaint.white.name=White Aircraft Paint
+
+key.categories.mcflight=Airplane Controls
+key.airplanedebug=Show Airplane Debug
+key.airplaneshowvectors=Show Force Vectors
+key.airplaneshowhud=Show Heads Up Display
+key.alieron_cw=Alierons Right
+key.alieron_ccw=Alierons Left
+key.elevator_up=Elevator Up
+key.elevator_down=Elevator Down
+key.rudder_left=Rudder Left
+key.rudder_right=Rudder Right
+key.throttle_up=Throttle Up
+key.throttle_down=Throttle Down
+key.brake=Apply Brakes
+key.look_around=Look Around
 
 itemGroup.Aircraft=Aircraft Parts
 

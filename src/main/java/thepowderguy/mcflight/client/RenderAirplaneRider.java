@@ -1,5 +1,7 @@
 package thepowderguy.mcflight.client;
 
+import org.lwjgl.input.Mouse;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;

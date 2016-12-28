@@ -18,6 +18,7 @@ import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.RenderAirplane;
 import thepowderguy.mcflight.physics.ControlSurface;
 import thepowderguy.mcflight.util.Mat3;
@@ -88,7 +89,7 @@ public class RenderBiplane extends RenderAirplane<EntityBiplane>
     	this.bindEntityTexture(entity);
     	GlStateManager.scale(-scale, -scale, scale);
     	//render
-    	((ModelBiplane)model).render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F, partialTicks, RenderAirplane.isVectorDrawing);
+    	((ModelBiplane)model).render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F, partialTicks, Mcflight.keyhandler.vectordrawing_toggled);
 
     	GlStateManager.popMatrix();
     	//System.out.println(partialTicks);

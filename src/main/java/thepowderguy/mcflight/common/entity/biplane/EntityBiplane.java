@@ -43,21 +43,21 @@ public class EntityBiplane extends EntityAirplane {
 	public void init(float fuel) {
 		super.init(fuel);
 		controlSurfaces = new ControlSurface[] {
-				new AerofoilWing(0.0, 0.0, -3.0, EntityBiplane.scale, 4.0),
-				new AerofoilCtrlSuface(0.0, 0.0, -50.5, EntityBiplane.scale, 0.25),
-				new AerofoilBasic(0.0, 0.0, -20.0, EntityBiplane.scale, 0.2),
-				new AerofoilCtrlSuface(0.0, 6.0, -50.5, EntityBiplane.scale, 0.25),
-				new AerofoilBasic(0.0, 6.0, -44.0, EntityBiplane.scale, 0.2),
-				new AerofoilCtrlSuface(-23, -7.0, -11.0, EntityBiplane.scale, 0.2),
-				new AerofoilCtrlSuface(23, -7.0, -11.0, EntityBiplane.scale, 0.2),
+				new AerofoilWing		(0.0,	0.0,	0.0,	EntityBiplane.scale,	4.0),
+				new AerofoilCtrlSuface	(0.0,	0.0,	-50.5,	EntityBiplane.scale,	0.25),
+				new AerofoilBasic		(0.0,	0.0,	-44.0,	EntityBiplane.scale,	0.15),
+				new AerofoilCtrlSuface	(0.0,	6.0,	-50.5,	EntityBiplane.scale,	0.25),
+				new AerofoilBasic		(0.0,	6.0,	-44.0,	EntityBiplane.scale,	0.2),
+				new AerofoilCtrlSuface	(-23,	-7.0,	-11.0,	EntityBiplane.scale,	0.2),
+				new AerofoilCtrlSuface	(23,	-7.0,	-11.0,	EntityBiplane.scale,	0.2),
 		};
 		collisionPoints = new CollisionPoint[] {
-				new CollisionPoint(5.5, -16, 7.5, 0.4, 3.0),
-				new CollisionPoint(-5.5, -16, 7.5, 0.4, 3.0),
-				new CollisionPoint(0.0, -9.0, -49.0, 0.4, 1.0),
-				new CollisionPoint(0.0, 0.0, 22.0, 1, 1.0),
-				new CollisionPoint(-50.0, -5.0, 0.0, 1, 1.0),
-				new CollisionPoint(50.0, -5.0, 0.0, 1, 1.0)
+				new CollisionPoint	(5.5,	-16,	7.5,	0.4,	3.0),
+				new CollisionPoint	(-5.5,	-16,	7.5,	0.4,	3.0),
+				new CollisionPoint	(0.0,	-9.0,	-49.0,	0.4,	1.0),
+				new CollisionPoint	(0.0,	0.0,	22.0,	1,		1.0),
+				new CollisionPoint	(-50.0,	-5.0,	0.0,	1,		1.0),
+				new CollisionPoint	(50.0,	-5.0,	0.0,	1,		1.0)
 		};
 	}
 

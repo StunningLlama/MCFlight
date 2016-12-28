@@ -1,6 +1,8 @@
 package thepowderguy.mcflight.physics;
 
 public class AerofoilWing extends ControlSurface {
+	protected static double critAoA = 21.0;
+	
 	public AerofoilWing(double x, double y, double z, double scale, double area) {
 		super(x, y, z, scale, area);
 		// TODO Auto-generated constructor stub
@@ -27,5 +29,10 @@ public class AerofoilWing extends ControlSurface {
 
 	public static double dSin(double a) {
 		return Math.sin(Math.toRadians(a));
+	}
+
+	@Override
+	public boolean isStalled() {
+		return angleOfAttack < -critAoA || angleOfAttack > critAoA;
 	}
 }

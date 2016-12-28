@@ -17,6 +17,7 @@ public abstract class ControlSurface {
 
 	public abstract double getDragFromAlpha(double d);
 	public abstract double getLiftFromAlpha(double d);
+	public abstract boolean isStalled();
 	
 	public void applyAerodynamicForces(Mat3 transform, Vec3 motion, Vec3 angularVelocity, Vec3 vel, double coefficient, double ctrlModifier) {
 	}
@@ -51,6 +52,10 @@ public abstract class ControlSurface {
 	
 	public double getAngleOfAttack() {
 		return this.angleOfAttack;
+	}
+	
+	public void setAngleOfAttack(double angle) {
+		angleOfAttack = angle;
 	}
 	
 	public Vec3 getForce(float partialTicks) {

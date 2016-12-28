@@ -30,4 +30,8 @@ public class AircraftPaint extends Item {
         }
     }
 
+    public String getUnlocalizedName(ItemStack stack)
+    {
+        return super.getUnlocalizedName() + "." + EnumDyeColor.byDyeDamage(stack.getMetadata()).getUnlocalizedName();
+    }
 }

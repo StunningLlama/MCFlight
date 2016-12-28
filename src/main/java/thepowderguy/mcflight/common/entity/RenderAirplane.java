@@ -10,6 +10,7 @@ import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
 import net.minecraft.util.ResourceLocation;
+import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.physics.CollisionPoint;
 import thepowderguy.mcflight.physics.ControlSurface;
 import thepowderguy.mcflight.util.Vec3;
@@ -23,13 +24,12 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
 
 	final Vec3 zero = new Vec3();
     double vscale = 100.0;
-    static public boolean isVectorDrawing = false;
     
 	public void doRender(T entity, double x, double y, double z, float par1, float partialTicks) //WTF is partialticks
 	{
 		super.doRender(entity, x, y, z, par1, partialTicks);
 		
-    	if (isVectorDrawing && entity.vectorsInitialized)
+    	if (Mcflight.keyhandler.vectordrawing_toggled && entity.vectorsInitialized)
     	{
 
     		GlStateManager.pushMatrix();
@@ -47,8 +47,12 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		renderVector(zero, entity.drag_vec, vertexbuffer, 255, 0, 0, vscale);
     		for (CollisionPoint i: entity.collisionPoints)
     			renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(), vertexbuffer, 0, 0, 0, vscale);
-    		for (ControlSurface i: entity.controlSurfaces)
-    			renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(partialTicks), vertexbuffer, 0, 0, 255, vscale);
+    		for (ControlSurface i: entity.controlSurfaces) {
+    			if (i.isStalled())
+        			renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(partialTicks), vertexbuffer, 255, 0, 0, vscale);
+    			else
+    				renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(partialTicks), vertexbuffer, 0, 0, 255, vscale);
+    		}
     		tessellator.draw();
     		GL11.glLineWidth(1.0F);
     		//GlStateManager.depthMask(true);

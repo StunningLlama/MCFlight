@@ -9,6 +9,7 @@ import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thepowderguy.mcflight.client.util.CameraDistanceEvent;
+import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.util.Mat3;
@@ -27,13 +28,17 @@ public class ClientEventHandler {
 	public void cam(EntityViewRenderEvent.CameraSetup event) {// mc.gameSettings.thirdPersonView
 																// == 0 &&
 		if ((mc.player.getRidingEntity() instanceof EntityAirplane)) {
-			EntityAirplane entity = (EntityAirplane) mc.player.getRidingEntity();
+/*			EntityAirplane entity = (EntityAirplane) mc.player.getRidingEntity();
 			Vec3 rot = entity.getInterpolatedRotation((float) event.getRenderPartialTicks());
 			Mat3 basetransform = Mat3.getTransformMatrix(rot.x, rot.y, rot.z);
 			Mat3 looktransform = Mat3.getTransformMatrix(EntityAirplane.viewYawOffset, EntityAirplane.viewPitchOffset,
 					0);
 			Mat3 transform = Mat3.mul(basetransform, looktransform);
-			Vec3 out = Mat3.getangles(transform);
+			Vec3 out = Mat3.getangles(transform);*/
+			EntityAirplaneCamera cam = null;
+			if (Minecraft.getMinecraft().getRenderViewEntity() instanceof EntityAirplaneCamera)
+				cam = (EntityAirplaneCamera) Minecraft.getMinecraft().getRenderViewEntity();
+			Vec3 out = cam.getInterpolatedRotations((float)event.getRenderPartialTicks());
 			event.setYaw(180 - (float) out.x);
 			event.setPitch((float) out.y);
 			event.setRoll((float) out.z);
@@ -45,7 +50,7 @@ public class ClientEventHandler {
 	@SubscribeEvent
 	public void onCameraDistanceUpdate(CameraDistanceEvent event) {
 		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane)
-			event.setDist(7.0);
+			event.setDist(EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode].zoom);
 	}
 
 	@SubscribeEvent
@@ -57,25 +62,6 @@ public class ClientEventHandler {
 			camroll -= 0.5;
 		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6))
 			camroll += 0.5;
-
-		if (EntityAirplane.useMouseInput && isPlayerRidingAirplane()) {
-			mc.mouseHelper.mouseXYChange();
-			int dx = mc.mouseHelper.deltaX;
-			int dy = mc.mouseHelper.deltaY;
-			if (Keyboard.isKeyDown(EntityAirplane.KEYBIND_LOOK)) {
-				EntityAirplane.viewYawOffset += dx / -20.0;
-				EntityAirplane.viewPitchOffset += dy / -20.0;
-				EntityAirplane.viewYawOffset = EntityAirplane.clamp(-180, EntityAirplane.viewYawOffset, 180);
-				EntityAirplane.viewPitchOffset = EntityAirplane.clamp(-90, EntityAirplane.viewPitchOffset, 90);
-			} else {
-
-				EntityAirplane.mouseX += dx;
-				EntityAirplane.mouseY += dy;
-				EntityAirplane.mouseY = EntityAirplane.clamp(-280, EntityAirplane.mouseY, 280);
-				EntityAirplane.mouseX = EntityAirplane.clamp(-400, EntityAirplane.mouseX, 400);
-			}
-
-		}
 
 		if (mc.player != null) {
 			if (isPlayerRidingAirplane()) {

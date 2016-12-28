@@ -19,6 +19,7 @@ import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
@@ -105,5 +106,6 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 	public void RegisterKeyBindings() {
 		FMLCommonHandler.instance().bus().register(Mcflight.keyhandler);
 		Mcflight.keyhandler.init();
+		EntityAirplane.input = Mcflight.keyhandler;
 	}
 }

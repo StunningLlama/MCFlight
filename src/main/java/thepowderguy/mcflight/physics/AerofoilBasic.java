@@ -24,4 +24,9 @@ public class AerofoilBasic extends ControlSurface {
 	public static double dCos(double a) {
 		return Math.cos(Math.toRadians(a));
 	}
+
+	@Override
+	public boolean isStalled() {
+		return angleOfAttack < -45.0 || angleOfAttack > 45.0;
+	}
 }

@@ -5,6 +5,7 @@ import java.text.DecimalFormat;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
+import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.util.Mat3;
@@ -33,8 +34,6 @@ public class RenderAirplaneInterface extends Gui {
 	static int green = 0xff00ff00;
 	static int red = 0xffff0000;
 	static DecimalFormat numformat = new DecimalFormat("#.##");
-	
-	public boolean isDebugEnabled = false;
 
 
 	private boolean isPlayerRidingAirplane() {
@@ -54,122 +53,123 @@ public class RenderAirplaneInterface extends Gui {
 	public void onRenderTick(RenderGameOverlayEvent event)
 	{
 		if (!isPlayerRidingAirplane()) {
-					return;
+			return;
 		}
-		
+
 		EntityAirplane entity = (EntityAirplane)Minecraft.getMinecraft().player.getRidingEntity();
-		
+
 		if (event.getType() == ElementType.CROSSHAIRS)
 			event.setCanceled(true);
-		
+
 		if (event.getType() != ElementType.CROSSHAIRS)
 			return;
-		
 		int cX = event.getResolution().getScaledWidth()/2;
 		int cY = event.getResolution().getScaledHeight()/2-20;
+		if (Mcflight.keyhandler.hud_toggled) {
 
-		float[] arr = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
-		GL11.glDisable(GL11.GL_LIGHTING);
-		GL11.glDisable(GL11.GL_TEXTURE_2D);
-		GlStateManager.color(0f, 1f, 0f, 1.0f);
-		//GL11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
-		GL11.glLineWidth(3.0f);
-		GL11.glBegin(GL11.GL_LINES);
-		//GL11.glColor3f(1.0f, 0.0f, 1.0f);
-		int len = 0;
-		Vec3 rot = entity.getInterpolatedRotation(event.getPartialTicks());
-		float pRoll = (float) rot.z;
-		float pPitch = (float) rot.y;
-		int start = 5*(int)Math.ceil((pitch-10.0)/5.0);
-		for (int i = start; i < 5*Math.floor(pitch+10)/5.0+2.5; i+= 5) {
-			float x1 = -15;
-			float x2 = 15;
-			float y1 = (float) ((i-pPitch)*1.5);
-			float y2 = (float) ((i-pPitch)*1.5);
-			float x1p = (float) (x1*Math.cos(Math.toRadians(-pRoll)) - y1*Math.sin(Math.toRadians(-pRoll)));
-			float y1p = (float) (x1*Math.sin(Math.toRadians(-pRoll)) + y1*Math.cos(Math.toRadians(-pRoll)));
-			float x2p = (float) (x2*Math.cos(Math.toRadians(-pRoll)) - y2*Math.sin(Math.toRadians(-pRoll)));
-			float y2p = (float) (x2*Math.sin(Math.toRadians(-pRoll)) + y2*Math.cos(Math.toRadians(-pRoll)));
-			GL11.glVertex2f(cX+x1p*3, cY+y1p*3);
-			GL11.glVertex2f(cX+x2p*3, cY+y2p*3);
-			arr[len*4] = x1p;
-			arr[len*4+1] = y1p;
-			arr[len*4+2] = x2p;
-			arr[len*4+3] = y2p;
-			len++;
+			float[] arr = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
+			GL11.glDisable(GL11.GL_LIGHTING);
+			GL11.glDisable(GL11.GL_TEXTURE_2D);
+			GlStateManager.color(0f, 1f, 0f, 1.0f);
+			//GL11.glColor4f(0.0f, 1.0f, 0.0f, 1.0f);
+			GL11.glLineWidth(3.0f);
+			GL11.glBegin(GL11.GL_LINES);
+			//GL11.glColor3f(1.0f, 0.0f, 1.0f);
+			int len = 0;
+			Vec3 rot = entity.getInterpolatedRotation(event.getPartialTicks());
+			float pRoll = (float) rot.z;
+			float pPitch = (float) rot.y;
+			int start = 5*(int)Math.ceil((pitch-10.0)/5.0);
+			for (int i = start; i < 5*Math.floor(pitch+10)/5.0+2.5; i+= 5) {
+				float x1 = -15;
+				float x2 = 15;
+				float y1 = (float) ((i-pPitch)*1.5);
+				float y2 = (float) ((i-pPitch)*1.5);
+				float x1p = (float) (x1*Math.cos(Math.toRadians(-pRoll)) - y1*Math.sin(Math.toRadians(-pRoll)));
+				float y1p = (float) (x1*Math.sin(Math.toRadians(-pRoll)) + y1*Math.cos(Math.toRadians(-pRoll)));
+				float x2p = (float) (x2*Math.cos(Math.toRadians(-pRoll)) - y2*Math.sin(Math.toRadians(-pRoll)));
+				float y2p = (float) (x2*Math.sin(Math.toRadians(-pRoll)) + y2*Math.cos(Math.toRadians(-pRoll)));
+				GL11.glVertex2f(cX+x1p*3, cY+y1p*3);
+				GL11.glVertex2f(cX+x2p*3, cY+y2p*3);
+				arr[len*4] = x1p;
+				arr[len*4+1] = y1p;
+				arr[len*4+2] = x2p;
+				arr[len*4+3] = y2p;
+				len++;
+			}
+			GL11.glEnd();
+
+			GL11.glEnable(GL11.GL_TEXTURE_2D);
+
+			for (int i = 0; i < len; i++) {
+				float avgx = (float) ((arr[i*4]+arr[i*4+2])/2.0);
+				float avgy = (float) ((arr[i*4+1]+arr[i*4+3])/2.0);
+				float total = (float)Math.sqrt((cX-avgx)*(cX-avgx)+(cY-avgy)*(cY-avgy));
+				font.drawString(toStr2d(-start-5*i),
+						cX+(int) (arr[i*4]*3 + 200*(arr[i*4]-avgx)/total - 5),
+						cY+(int) (arr[i*4+1]*3 + 200*(arr[i*4+1]-avgy)/total - 6),
+						green);
+				font.drawString(toStr2d(-start-5*i),
+						cX+(int) (arr[i*4+2]*3 + 200*(arr[i*4+2]-avgx)/total - 5),
+						cY+(int) (arr[i*4+3]*3 + 200*(arr[i*4+3]-avgy)/total - 6),
+						green);
+			}
+			//GL11.glEnable(GL11.GL_LIGHTING);
+			//GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
+			//GL11.gl
+
+			//GLStateManager.
+			/*GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
+			GL11.glVertex2f(200f,100f);
+			GL11.glVertex2f(100f,100f);
+			GL11.glVertex2f(200f,200f);
+			GL11.glVertex2f(100f,200f);
+			GL11.glEnd();*/
+			/*
+			 */
+
+
+			font.drawString("^", cX-2, cY-1, green);
+			//Alt
+			this.drawVerticalLine(cX+100, cY-80, cY+80, green);
+			this.drawHorizontalLine(cX+100, cX+130, cY-80, green);
+			this.drawHorizontalLine(cX+100, cX+130, cY+80, green);
+			for (int i = 20*(int)Math.ceil((alt-50.0)/20.0-0.1); i < alt+50; i+= 20)
+				font.drawString(toStr2d(i), cX+108, (int) (cY + (alt - i) * (32.0/20.0)) - 3, green);
+			for (int i = 10*(int)Math.ceil((alt-50.0)/10.0); i < alt+50; i+= 10)
+				this.drawHorizontalLine(cX+100, cX+105, (int) (cY + (alt - i) * (32.0/20.0)), green);
+
+
+			//72 * speed
+
+			//Speed
+			double KPH = (72.0*speed);
+			this.drawVerticalLine(cX-100, cY-80, cY+80, green);
+			this.drawHorizontalLine(cX-100, cX-130, cY-80, green);
+			this.drawHorizontalLine(cX-100, cX-130, cY+80, green);
+			for (int i = 10*(int)Math.ceil((KPH-25.0)/10.0-0.1); i < KPH+25; i+= 10)
+				font.drawString(toStr2d(i), cX-125, (int) (cY + (KPH - i) * (32.0/10.0)) - 3, green);
+			for (int i = 5*(int)Math.ceil((KPH-25.0)/5.0); i < KPH+25; i+= 5)
+				this.drawHorizontalLine(cX-100, cX-105, (int) (cY + (KPH - i) * (32.0/10.0)), green);
+
+
+			this.drawHorizontalLine(cX-100, cX+100, cY+110, green);
+			this.drawVerticalLine(cX-100, cY+110, cY+140, green);
+			this.drawVerticalLine(cX+100, cY+110, cY+140, green);
+			for (int i = 10*(int)Math.ceil((yaw-45)/10.0); i < yaw+45+5; i+= 10)
+				font.drawString(toStr2d((36-((int)(i<0? i+360 : i)/10)%36)), (int) (cX + (yaw-i)*2.0) - 6, cY+122, green);
+			for (int i = 10*(int)Math.ceil((yaw-45)/10.0); i < yaw+45+5; i+= 5)
+				this.drawVerticalLine((int) (cX + (yaw-i)*2.0), cY+110, cY+120, green);
+
+			font.drawString("Fuel: " + numformat.format(100.0*C_FUEL/EntityBiplane.fuelCapacity) + "%", cX-100, cY-92, green);
+			if (!entity.onGround && entity.stall)
+				font.drawString("\u00a7nSTALL!", cX-130, cY-92, red);
+			font.drawString("Acceleraton: " + numformat.format(acc/EntityAirplane.gravity_const) + "g", cX-20, cY-92, green);
+
 		}
-		GL11.glEnd();
-
-		GL11.glEnable(GL11.GL_TEXTURE_2D);
-		
-		for (int i = 0; i < len; i++) {
-			float avgx = (float) ((arr[i*4]+arr[i*4+2])/2.0);
-			float avgy = (float) ((arr[i*4+1]+arr[i*4+3])/2.0);
-			float total = (float)Math.sqrt((cX-avgx)*(cX-avgx)+(cY-avgy)*(cY-avgy));
-			font.drawString(toStr2d(-start-5*i),
-					cX+(int) (arr[i*4]*3 + 200*(arr[i*4]-avgx)/total - 5),
-					cY+(int) (arr[i*4+1]*3 + 200*(arr[i*4+1]-avgy)/total - 6),
-					green);
-			font.drawString(toStr2d(-start-5*i),
-					cX+(int) (arr[i*4+2]*3 + 200*(arr[i*4+2]-avgx)/total - 5),
-					cY+(int) (arr[i*4+3]*3 + 200*(arr[i*4+3]-avgy)/total - 6),
-					green);
-		}
-
-		//GL11.glEnable(GL11.GL_LIGHTING);
-		//GL11.glClear(GL11.GL_COLOR_BUFFER_BIT | GL11.GL_DEPTH_BUFFER_BIT);
-		//GL11.gl
-		
-		//GLStateManager.
-		/*GL11.glBegin(GL11.GL_TRIANGLE_STRIP);
-		GL11.glVertex2f(200f,100f);
-		GL11.glVertex2f(100f,100f);
-		GL11.glVertex2f(200f,200f);
-		GL11.glVertex2f(100f,200f);
-		GL11.glEnd();*/
-		/*
-*/
-		
-		
-		font.drawString("^", cX-2, cY-1, green);
 		font.drawString("+", (int)EntityAirplane.mouseX/2+cX - 2, cY-(int)EntityAirplane.mouseY/2 - 3, 0xffffffff);
-		//Alt
-		this.drawVerticalLine(cX+100, cY-80, cY+80, green);
-		this.drawHorizontalLine(cX+100, cX+130, cY-80, green);
-		this.drawHorizontalLine(cX+100, cX+130, cY+80, green);
-		for (int i = 20*(int)Math.ceil((alt-50.0)/20.0-0.1); i < alt+50; i+= 20)
-			font.drawString(toStr2d(i), cX+108, (int) (cY + (alt - i) * (32.0/20.0)) - 3, green);
-		for (int i = 10*(int)Math.ceil((alt-50.0)/10.0); i < alt+50; i+= 10)
-			this.drawHorizontalLine(cX+100, cX+105, (int) (cY + (alt - i) * (32.0/20.0)), green);
 		
-		
-		//72 * speed
-		
-		//Speed
-		double KPH = (72.0*speed);
-		this.drawVerticalLine(cX-100, cY-80, cY+80, green);
-		this.drawHorizontalLine(cX-100, cX-130, cY-80, green);
-		this.drawHorizontalLine(cX-100, cX-130, cY+80, green);
-		for (int i = 10*(int)Math.ceil((KPH-25.0)/10.0-0.1); i < KPH+25; i+= 10)
-			font.drawString(toStr2d(i), cX-125, (int) (cY + (KPH - i) * (32.0/10.0)) - 3, green);
-		for (int i = 5*(int)Math.ceil((KPH-25.0)/5.0); i < KPH+25; i+= 5)
-			this.drawHorizontalLine(cX-100, cX-105, (int) (cY + (KPH - i) * (32.0/10.0)), green);
-
-
-		this.drawHorizontalLine(cX-100, cX+100, cY+110, green);
-		this.drawVerticalLine(cX-100, cY+110, cY+140, green);
-		this.drawVerticalLine(cX+100, cY+110, cY+140, green);
-		for (int i = 10*(int)Math.ceil((yaw-45)/10.0); i < yaw+45+5; i+= 10)
-			font.drawString(toStr2d((36-((int)(i<0? i+360 : i)/10)%36)), (int) (cX + (yaw-i)*2.0) - 6, cY+122, green);
-		for (int i = 10*(int)Math.ceil((yaw-45)/10.0); i < yaw+45+5; i+= 5)
-			this.drawVerticalLine((int) (cX + (yaw-i)*2.0), cY+110, cY+120, green);
-		
-		font.drawString("Fuel: " + numformat.format(100.0*C_FUEL/EntityBiplane.fuelCapacity) + "%", cX-100, cY-92, green);
-		if (!entity.onGround && entity.stall)
-			font.drawString("\u00a7nSTALL!", cX-130, cY-92, red);
-		font.drawString("Acceleraton: " + numformat.format(acc/EntityAirplane.gravity_const) + "g", cX-20, cY-92, green);
-		
-		if (isDebugEnabled)
+		if (Mcflight.keyhandler.debug_toggled)
 			drawDebugScr();
 	}
 	
