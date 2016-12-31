@@ -135,7 +135,7 @@ public class Vec3 {
 	}
 
 	public static double sinTheta(Vec3 a, Vec3 b) {
-		return Vec3.cross(a, b).mag()/(a.mag()*b.mag());
+		return zeroIfNaN(Vec3.cross(a, b).mag()/(a.mag()*b.mag()));
 	}
 	
 	public static Vec3 AxisAngleRotation(Vec3 axis, Vec3 point, double theta) {

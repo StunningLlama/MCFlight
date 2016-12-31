@@ -55,6 +55,11 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		}
     		tessellator.draw();
     		GL11.glLineWidth(1.0F);
+    		GL11.glPointSize(5.0F);
+    		GL11.glBegin(GL11.GL_POINTS);
+    		for (CollisionPoint i: entity.collisionPoints)
+    			renderPoint(i.getInterpolatedPosition(partialTicks), 1.0f, 0.5f, 0);
+    		GL11.glEnd();
     		//GlStateManager.depthMask(true);
     		GL11.glEnable(GL11.GL_LIGHTING);
     		GlStateManager.enableTexture2D();
@@ -63,6 +68,11 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
 	}
 	
 
+    private void renderPoint(Vec3 vec, float r, float g, float b) {
+    	GlStateManager.color(r, g, b);
+    	GL11.glVertex3f((float)vec.x, (float)vec.y, (float)vec.z);
+    	GlStateManager.color(1, 1, 1);
+    }
     private void renderVector(Vec3 start, Vec3 vec, VertexBuffer vertexbuffer, int r, int g, int b, double scale) {
         vertexbuffer.pos(start.x, start.y, start.z).color(r, g, b, 255).endVertex();
         vertexbuffer.pos((start.x+vec.x*scale), (start.y+vec.y*scale), (start.z+vec.z*scale)).color(r, g, b, 255).endVertex();

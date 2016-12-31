@@ -46,3 +46,9 @@ key.look_around=Look Around
 itemGroup.Aircraft=Aircraft Parts
 
 entity.biplane.name=Biplane
+airplane.view.cockpit=Cockpit view
+airplane.view.tail=Tail view
+airplane.view.follow=Follow view
+airplane.view.wingl=Left wing view
+airplane.view.wingr=Right wing view
+airplane.view.passenger=Passenger view

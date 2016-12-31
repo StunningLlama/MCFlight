@@ -1,6 +1,7 @@
 package thepowderguy.mcflight.client;
 
 import org.lwjgl.input.Keyboard;
+import org.lwjgl.input.Mouse;
 
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
@@ -10,6 +11,7 @@ import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
 import thepowderguy.mcflight.client.util.CameraDistanceEvent;
 import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.entity.CameraView;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.util.Mat3;
@@ -49,8 +51,10 @@ public class ClientEventHandler {
 
 	@SubscribeEvent
 	public void onCameraDistanceUpdate(CameraDistanceEvent event) {
-		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane)
-			event.setDist(EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode].zoom);
+		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane) {
+			CameraView c = EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode];
+			event.setDist(c.prevZoom + (c.zoom-c.prevZoom)*event.getPartialTicks());
+		}
 	}
 
 	@SubscribeEvent
@@ -91,6 +95,8 @@ public class ClientEventHandler {
 						}
 					} else {
 						mc.setIngameFocus();
+						while (Mouse.next()) {};
+						Mouse.next();
 					}
 				}
 			}

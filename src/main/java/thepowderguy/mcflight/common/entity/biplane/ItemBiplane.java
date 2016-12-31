@@ -1,4 +1,4 @@
-package thepowderguy.mcflight.common.item;
+package thepowderguy.mcflight.common.entity.biplane;
 
 import java.util.List;
 

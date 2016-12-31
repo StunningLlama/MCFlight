@@ -1,12 +1,24 @@
 package thepowderguy.mcflight.common.entity;
 
+import java.util.Random;
+
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.settings.GameSettings;
+import net.minecraft.command.CommandResultStats;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
+import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.network.datasync.EntityDataManager;
+import net.minecraft.server.MinecraftServer;
+import net.minecraft.util.DamageSource;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import net.minecraft.world.WorldServer;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
@@ -21,12 +33,12 @@ public class EntityAirplaneCamera extends Entity {
 	//Tail view
 	//Wing view?
 	
-	static CameraView view_cockpit = new CameraView();
-	static CameraView view_tail = new CameraView();
-	static CameraView view_follow = new CameraView();
-	static CameraView view_wing_L = new CameraView();
-	static CameraView view_wing_R = new CameraView();
-	static CameraView view_passenger = new CameraView();
+	static CameraView view_cockpit = new CameraView("airplane.view.cockpit");
+	static CameraView view_tail = new CameraView("airplane.view.tail");
+	static CameraView view_follow = new CameraView("airplane.view.follow");
+	static CameraView view_wing_L = new CameraView("airplane.view.wingl");
+	static CameraView view_wing_R = new CameraView("airplane.view.wingr");
+	static CameraView view_passenger = new CameraView("airplane.view.passenger");
 	
 	public static float min_zoom = 1.0f;
 	public static float max_zoom = 10.0f;
@@ -45,9 +57,44 @@ public class EntityAirplaneCamera extends Entity {
 	public EntityAirplaneCamera(World worldIn, EntityAirplane plane) {
 		super(worldIn);
 		ent = plane;
+		posX = plane.posX;
+		posY = plane.posY;
+		posZ = plane.posZ;
+		this.lastTickPosX = this.posX;
+		this.lastTickPosY = this.posY;
+		this.lastTickPosZ = this.posZ;
+		this.prevPosX = this.posX;
+		this.prevPosY = this.posY;
+		this.prevPosZ = this.posZ;
+this.setPosition(posX, posY, posZ);
+		this.rotationYaw = 0;
+		this.rotationPitch = 0;
+		this.rotationRoll = 0;
+		this.prevRotationYaw = rotationYaw;
+		this.prevRotationPitch = rotationPitch;
+		this.prevRotationRoll = rotationRoll;
+		this.spawnEntity(this, worldIn);
 		Minecraft.getMinecraft().world.weatherEffects.add(this);
 		// TODO Auto-generated constructor stub
 	}
+
+
+	public boolean spawnEntity(Entity entityIn, World w)
+	{
+		// do not drop any items while restoring blocksnapshots. Prevents dupes
+		if (!w.isRemote && (entityIn == null || (entityIn instanceof net.minecraft.entity.item.EntityItem && w.restoringBlockSnapshots))) return false;
+
+		int i = MathHelper.floor(entityIn.posX / 16.0D);
+		int j = MathHelper.floor(entityIn.posZ / 16.0D);
+
+		if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.event.entity.EntityJoinWorldEvent(entityIn, w))) return false;
+
+		w.getChunkFromChunkCoords(i, j).addEntity(entityIn);
+		w.loadedEntityList.add(entityIn);
+		w.onEntityAdded(entityIn);
+		return true;
+	}
+
 
 	@Override
 	protected void entityInit() {
@@ -68,7 +115,35 @@ public class EntityAirplaneCamera extends Entity {
 	
 	@Override
 	public void onUpdate() {
-		
+        this.world.theProfiler.startSection("entityBaseTick");
+
+        if (this.isRiding() && this.getRidingEntity().isDead)
+        {
+            this.dismountRidingEntity();
+        }
+
+        if (this.rideCooldown > 0)
+        {
+            --this.rideCooldown;
+        }
+
+        this.prevDistanceWalkedModified = this.distanceWalkedModified;
+
+        this.spawnRunningParticles();
+        this.handleWaterMovement();
+
+        if (this.world.isRemote)
+        {
+            this.extinguish();
+        }
+
+        if (this.posY < -64.0D)
+        {
+            this.kill();
+        }
+
+        this.firstUpdate = false;
+        this.world.theProfiler.endSection();
 	}
 
     public float getEyeHeight()
@@ -91,10 +166,28 @@ public class EntityAirplaneCamera extends Entity {
 
     }
 
-    
+
+	public static float clamp(float min, float val, float max) {
+		if (val < min) return min;
+		if (val > max) return max;
+		return val;
+	}
+	
     public void updatePositions(boolean isPlayerRiding, Mat3 transform) {
 
 		//super.onUpdate();
+
+		CameraView view = EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode];
+		view.prevZoom = view.zoom;
+		if (Mcflight.keyhandler.zoom_in.isKeyDown()) {
+			view.zoom -= 0.2;
+			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
+		}
+		if (Mcflight.keyhandler.zoom_out.isKeyDown()) {
+			view.zoom += 0.2;
+			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
+		}
+		
 		this.lastTickPosX = this.posX;
 		this.lastTickPosY = this.posY;
 		this.lastTickPosZ = this.posZ;

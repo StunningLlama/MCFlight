@@ -1,9 +1,23 @@
 package thepowderguy.mcflight.client;
 
+import java.lang.reflect.Field;
+
 import org.lwjgl.input.Keyboard;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.OpenGlHelper;
+import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.RenderList;
+import net.minecraft.client.renderer.VboRenderList;
+import net.minecraft.client.renderer.ViewFrustum;
+import net.minecraft.client.renderer.chunk.ChunkRenderDispatcher;
+import net.minecraft.client.renderer.chunk.IRenderChunkFactory;
+import net.minecraft.client.renderer.chunk.ListChunkFactory;
+import net.minecraft.client.renderer.chunk.VboChunkFactory;
+import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.Entity;
+import net.minecraft.init.Blocks;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -53,7 +67,6 @@ public class InterfaceKeyHandler {
 		brake         = new KeyBinding("key.brake", Keyboard.KEY_Z, "key.categories.mcflight");
 		look_around   = new KeyBinding("key.look_around", Keyboard.KEY_SPACE, "key.categories.mcflight");
 		changeCamera   = new KeyBinding("key.change_camera", Keyboard.KEY_F6, "key.categories.mcflight");
-		
 		ClientRegistry.registerKeyBinding(toggleVector);
 		ClientRegistry.registerKeyBinding(toggleDebug);
 		ClientRegistry.registerKeyBinding(toggleHud);
@@ -79,6 +92,65 @@ public class InterfaceKeyHandler {
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if (toggleDebug.isPressed()) {
 			debug_toggled = !debug_toggled;
+
+/*		        if (this.world != null)
+		        {
+		            if (this.renderDispatcher == null)
+		            {
+		                this.renderDispatcher = new ChunkRenderDispatcher();
+		            }
+
+		            this.displayListEntitiesDirty = true;
+		            Blocks.LEAVES.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
+		            Blocks.LEAVES2.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
+		            this.renderDistanceChunks = this.mc.gameSettings.renderDistanceChunks;
+		            boolean flag = this.vboEnabled;
+		            this.vboEnabled = OpenGlHelper.useVbo();
+
+		            if (flag && !this.vboEnabled)
+		            {
+		                this.renderContainer = new RenderList();
+		                this.renderChunkFactory = new ListChunkFactory();
+		            }
+		            else if (!flag && this.vboEnabled)
+		            {
+		                this.renderContainer = new VboRenderList();
+		                this.renderChunkFactory = new VboChunkFactory();
+		            }
+
+		            if (flag != this.vboEnabled)
+		            {
+		                this.generateStars();
+		                this.generateSky();
+		                this.generateSky2();
+		            }
+
+		            if (this.viewFrustum != null)
+		            {
+		                this.viewFrustum.deleteGlResources();
+		            }
+
+		            this.stopChunkUpdates();
+
+		            synchronized (this.setTileEntities)
+		            {
+		                this.setTileEntities.clear();
+		            }
+
+		            this.viewFrustum = new ViewFrustum(this.world, this.mc.gameSettings.renderDistanceChunks, this, this.renderChunkFactory);
+
+		            if (this.world != null)
+		            {
+		                Entity entity = this.mc.getRenderViewEntity();
+
+		                if (entity != null)
+		                {
+		                    this.viewFrustum.updateChunkPositions(entity.posX, entity.posZ);
+		                }
+		            }
+
+		            this.renderEntitiesStartupCounter = 2;
+		        }*/
 		}
 		if (toggleVector.isPressed()) {
 			vectordrawing_toggled = !vectordrawing_toggled;
@@ -88,23 +160,7 @@ public class InterfaceKeyHandler {
 		}
 		if (changeCamera.isPressed()) {
 			camera_mode = (camera_mode+1)%6;
+			Minecraft.getMinecraft().ingameGUI.setOverlayMessage(I18n.format(EntityAirplaneCamera.views[camera_mode].name), false);
 		}
-		if (zoom_in.isPressed()) {
-			CameraView view = EntityAirplaneCamera.views[camera_mode];
-			view.zoom += 0.5;
-			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
-		}
-		if (zoom_out.isPressed()) {
-			CameraView view = EntityAirplaneCamera.views[camera_mode];
-			view.zoom -= 0.5;
-			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
-		}
-	}
-	
-
-	public static float clamp(float min, float val, float max) {
-		if (val < min) return min;
-		if (val > max) return max;
-		return val;
 	}
 }

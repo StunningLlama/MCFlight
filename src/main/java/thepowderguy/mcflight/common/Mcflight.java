@@ -6,6 +6,7 @@ import thepowderguy.mcflight.client.util.CustomEntityRenderer;
 import thepowderguy.mcflight.client.util.CustomRenderPlayer;
 import thepowderguy.mcflight.common.entity.*;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
+import thepowderguy.mcflight.common.entity.biplane.ItemBiplane;
 import thepowderguy.mcflight.common.item.*;
 import thepowderguy.mcflight.common.packet.AirplanePacketListener;
 import thepowderguy.mcflight.common.packet.AirplaneStateListener;
@@ -15,8 +16,6 @@ import thepowderguy.mcflight.common.world.McflightWorldGenerator;
 import thepowderguy.mcflight.common.world.Oil;
 import thepowderguy.mcflight.common.world.BlockOil;
 import thepowderguy.mcflight.common.world.WorldGenOil;
-import unused.OilFlowing;
-import unused.OilStill;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
@@ -90,10 +89,14 @@ public class Mcflight {
 	public static Item item_kerosene;
 	
 	//aircraft items
+	//TODO:
+	//* Military fighter aircraft
+	//* Jet passenger liner?
+	//* Small single wing propeller aircraft
+	//* UFO??
+	//* Seaplane
+	//biplane
 	public static Item item_airplane_biplane;
-	public static Item item_airplane_cessna_skyhawk;
-	public static Item item_airplane_boeing_737;
-	public static Item item_airplane_douglas_dc3;
 	
 	public static Item item_paint;
 	
@@ -188,7 +191,7 @@ public class Mcflight {
 	{
 	    // register server commands
 
-		event.registerServerCommand(new CommandTestAirplane());
+//		event.registerServerCommand(new CommandTestAirplane());
 	}
 	
 	@EventHandler

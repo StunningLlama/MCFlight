@@ -629,7 +629,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
         }
         else if (this.mc.gameSettings.thirdPersonView > 0)
         {
-        	CameraDistanceEvent distanceEvent = new CameraDistanceEvent((double)(this.thirdPersonDistancePrev + (4.0F - this.thirdPersonDistancePrev) * partialTicks), mc.player);
+        	CameraDistanceEvent distanceEvent = new CameraDistanceEvent((double)(this.thirdPersonDistancePrev + (4.0F - this.thirdPersonDistancePrev) * partialTicks), mc.player, partialTicks);
             MinecraftForge.EVENT_BUS.post(distanceEvent);
         	double d3 = distanceEvent.getDist();
 

@@ -52,12 +52,22 @@ public class EntityBiplane extends EntityAirplane {
 				new AerofoilCtrlSuface	(23,	-7.0,	-11.0,	EntityBiplane.scale,	0.2),
 		};
 		collisionPoints = new CollisionPoint[] {
-				new CollisionPoint	(5.5,	-16,	7.5,	0.4,	3.0),
-				new CollisionPoint	(-5.5,	-16,	7.5,	0.4,	3.0),
-				new CollisionPoint	(0.0,	-9.0,	-49.0,	0.4,	1.0),
-				new CollisionPoint	(0.0,	0.0,	22.0,	1,		1.0),
-				new CollisionPoint	(-50.0,	-5.0,	0.0,	1,		1.0),
-				new CollisionPoint	(50.0,	-5.0,	0.0,	1,		1.0)
+				new CollisionPoint	(5.5,	-16,	7.5,	0.4,	3.0), //wheel
+				new CollisionPoint	(-5.5,	-16,	7.5,	0.4,	3.0), //wheel
+				new CollisionPoint	(0.0,	-9.0,	-49.0,	0.4,	1.0), //tail wheel
+				new CollisionPoint	(0.0,	-2.5,	21.0,	1,		1.0), //engine
+				new CollisionPoint	(-50.0,	-8,		9.0,	1,		1.0), //wing
+				new CollisionPoint	(-50.0,	-8,		-10.0,	1,		1.0), //wing
+				new CollisionPoint	(50.0,	-8,		9.0,	1,		1.0), //wing
+				new CollisionPoint	(50.0,	-8,		-10.0,	1,		1.0), //wing
+				new CollisionPoint	(-50.0,	12,		9.0,	1,		1.0), //wing
+				new CollisionPoint	(-50.0,	12,		-10.0,	1,		1.0), //wing
+				new CollisionPoint	(50.0,	12,		9.0,	1,		1.0), //wing
+				new CollisionPoint	(50.0,	12,		-10.0,	1,		1.0), //wing
+				new CollisionPoint	(0.0,	9.0,	-49.0,	0.4,	1.0), //tail wheel
+				new CollisionPoint	(0.0,	12,		 0,		0.4,	1.0), //tail wheel
+				new CollisionPoint	(0.0,	-8,		-10.0,	1,		1.0), //wing
+				new CollisionPoint	(0.0,	-8,		18.0,	1,		1.0), //engine
 		};
 	}
 

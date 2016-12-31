@@ -4,7 +4,6 @@ import java.util.List;
 
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
-import thepowderguy.mcflight.common.item.ItemBiplane;
 import net.minecraft.client.Minecraft;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.EntityPlayer;

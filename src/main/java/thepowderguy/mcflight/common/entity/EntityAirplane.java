@@ -1,5 +1,6 @@
 package thepowderguy.mcflight.common.entity;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -26,6 +27,9 @@ import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
+import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.ViewFrustum;
+import net.minecraft.client.renderer.chunk.IRenderChunkFactory;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityLiving;
 import net.minecraft.entity.EntityLivingBase;
@@ -345,9 +349,10 @@ public abstract class EntityAirplane extends Entity {
 	// * A bit more realistic control surfaces DONE!
 	// * Realistic friction DONE!
 	// * More camera types DONE!
+	// * Floating planes
+	// * 
 	
 	// Bugs:
-	// visual glitch when yaw goes from -180 to 180 or vice versa
 	// It is hard to get off airplanes sometimes
 	
 	protected double thrusttovelfunc(double x) {
@@ -359,6 +364,10 @@ public abstract class EntityAirplane extends Entity {
 	protected abstract boolean canSteer();
 	
 	protected abstract ControlSurface getWing();
+	
+	private void dosomestuff() {
+		
+	}
 	
 	public void onUpdate()
 	{
@@ -415,12 +424,13 @@ public abstract class EntityAirplane extends Entity {
 		//Drag
 		//bodyDragUp is basically the same thing as lift induced drag
 		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && input.brake.isKeyDown() ? 2.0 : 1.0);
-		double bodyDragUp = velocity_sq * drag_const * dragMul_vertical * Vec3.cosTheta(vel, vup);
-		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
+		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways * Vec3.sinTheta(vel, vfwd);
+		Vec3 dirvec = Vec3.cross(vfwd, Vec3.cross(vfwd, vel)).unitvector();
+		//double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
 		drag_vec = new Vec3 (
-				bodyDragFwd*vfwd.x + bodyDragUp*vup.x + bodyDragSideways * vside.x,
-				bodyDragFwd*vfwd.y + bodyDragUp*vup.y + bodyDragSideways * vside.y,
-				bodyDragFwd*vfwd.z + bodyDragUp*vup.z + bodyDragSideways * vside.z);
+				bodyDragFwd*vfwd.x + dirvec.x * bodyDragSideways,
+				bodyDragFwd*vfwd.y + dirvec.y * bodyDragSideways,
+				bodyDragFwd*vfwd.z + dirvec.z * bodyDragSideways);
 		drag_vec.mul(1.0/weight);
 		tmpMotion.add(drag_vec);
 		
@@ -520,7 +530,7 @@ public abstract class EntityAirplane extends Entity {
 				double brake_multiplier = brakedown? collisionPoints[i].brakeMul: 1.0;
 				totalnormalforce.add(collisionVec);
 				Vec3 fcDirection = Vec3.cross(collisionVec, Vec3.cross(collisionVec, motion)).unitvector();
-				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction;
+				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction*(2.0*normal.mag()/0.025);
 				Vec3 friction = fcDirection.mul(fcMag);
 				frictionmotiondiff.add(friction);
 				collisionPoints[i].setForce(Vec3.add(fcDirection, normal));
@@ -564,7 +574,6 @@ public abstract class EntityAirplane extends Entity {
 		
 		double mag_drag = drag_vec.mag();
 		double mag_thrust = thrust_vec.mag();
-
 
 		// 1. Convert pitch/yaw/roll axis to vectors
 		// 2. Use axis angle rotation to rotate vectors (these are now the values of a transformation matrix)
@@ -950,6 +959,55 @@ public abstract class EntityAirplane extends Entity {
 	public static boolean isPaint(ItemStack i) {
 		return (i != null && i.getItem() instanceof AircraftPaint);
 	}
+	
+	boolean reloadChunks = true;
+	
+	@Override
+	protected void addPassenger(Entity passenger)
+	{
+		super.addPassenger(passenger);
+		if (passenger == Minecraft.getMinecraft().player) {
+		//	Minecraft.getMinecraft().setRenderViewEntity(this.cam);
+			if (reloadChunks) {
+				try {
+					RenderGlobal r = Minecraft.getMinecraft().renderGlobal;
+					Minecraft mc = Minecraft.getMinecraft();
+
+					Field f = RenderGlobal.class.getDeclaredField("viewFrustum");
+					f.setAccessible(true);
+					Field fac;
+					fac = RenderGlobal.class.getDeclaredField("renderChunkFactory");
+					fac.setAccessible(true);
+					IRenderChunkFactory factory = (IRenderChunkFactory) fac.get(r);
+					ViewFrustum frustum = new ViewFrustum(mc.world, mc.gameSettings.renderDistanceChunks, r, factory);
+					f.set(r, frustum);
+					if (mc.world != null)
+					{
+						Entity entity = mc.getRenderViewEntity();
+
+						if (entity != null)
+						{
+							frustum.updateChunkPositions(entity.posX, entity.posZ);
+						}
+					}
+
+				} catch (NoSuchFieldException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (SecurityException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalArgumentException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IllegalAccessException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+    }
+	
 	@Override
 	public boolean processInitialInteract(EntityPlayer player, EnumHand hand)
 	{
