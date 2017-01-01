@@ -72,9 +72,4 @@ public class BlockOil extends BlockFluidClassic {
             return false;
         }
     }
-	//@Override
-	//public int getRenderType() {
-	//	return 1;
-	//}
-	
 }

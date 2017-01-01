@@ -76,65 +76,6 @@ public class InterfaceKeyHandler {
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if (toggleDebug.isPressed()) {
 			debug_toggled = !debug_toggled;
-
-/*		        if (this.world != null)
-		        {
-		            if (this.renderDispatcher == null)
-		            {
-		                this.renderDispatcher = new ChunkRenderDispatcher();
-		            }
-
-		            this.displayListEntitiesDirty = true;
-		            Blocks.LEAVES.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
-		            Blocks.LEAVES2.setGraphicsLevel(this.mc.gameSettings.fancyGraphics);
-		            this.renderDistanceChunks = this.mc.gameSettings.renderDistanceChunks;
-		            boolean flag = this.vboEnabled;
-		            this.vboEnabled = OpenGlHelper.useVbo();
-
-		            if (flag && !this.vboEnabled)
-		            {
-		                this.renderContainer = new RenderList();
-		                this.renderChunkFactory = new ListChunkFactory();
-		            }
-		            else if (!flag && this.vboEnabled)
-		            {
-		                this.renderContainer = new VboRenderList();
-		                this.renderChunkFactory = new VboChunkFactory();
-		            }
-
-		            if (flag != this.vboEnabled)
-		            {
-		                this.generateStars();
-		                this.generateSky();
-		                this.generateSky2();
-		            }
-
-		            if (this.viewFrustum != null)
-		            {
-		                this.viewFrustum.deleteGlResources();
-		            }
-
-		            this.stopChunkUpdates();
-
-		            synchronized (this.setTileEntities)
-		            {
-		                this.setTileEntities.clear();
-		            }
-
-		            this.viewFrustum = new ViewFrustum(this.world, this.mc.gameSettings.renderDistanceChunks, this, this.renderChunkFactory);
-
-		            if (this.world != null)
-		            {
-		                Entity entity = this.mc.getRenderViewEntity();
-
-		                if (entity != null)
-		                {
-		                    this.viewFrustum.updateChunkPositions(entity.posX, entity.posZ);
-		                }
-		            }
-
-		            this.renderEntitiesStartupCounter = 2;
-		        }*/
 		}
 		if (toggleVector.isPressed()) {
 			vectordrawing_toggled = !vectordrawing_toggled;

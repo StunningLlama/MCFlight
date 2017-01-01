@@ -9,9 +9,6 @@ public class Oil extends Fluid {
 		super(fluidName, still, flowing);
 		this.setViscosity(2000);
 		setDensity(1000);
-		//this.
-		//this.set
-		// TODO Auto-generated constructor stub
 	}
 
 }

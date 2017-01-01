@@ -1,6 +1,5 @@
 package thepowderguy.mcflight.physics;
 
-import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
 
 //** NOTE: implement this class when needed.
@@ -18,19 +17,6 @@ public abstract class ControlSurface {
 	public abstract double getDragFromAlpha(double d);
 	public abstract double getLiftFromAlpha(double d);
 	public abstract boolean isStalled();
-	
-	public void applyAerodynamicForces(Mat3 transform, Vec3 motion, Vec3 angularVelocity, Vec3 vel, double coefficient, double ctrlModifier) {
-	}
-	
-	/*
-	public void applyAerodynamicForces(Mat3 transform, Vec3 motion, Vec3 angularVelocity, Vec3 vel, double coefficient, double ctrlModifier) {
-		double dragMagnitude = Vec3.cosTheta(vel, normal) * coefficient * wingArea;
-		Vec3 force = Vec3.mul(normal, dragMagnitude);
-		motion.add(force);
-		transformposition = transform.transform(position);
-		angularVelocity.add(Vec3.cross(transformposition, force).mul(ctrlModifier));
-	}
-	*/
 	
 	public ControlSurface(double x, double y, double z, double scale, double area) {
 		position = new Vec3(x*scale, y*scale, z*scale);

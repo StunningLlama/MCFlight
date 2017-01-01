@@ -8,11 +8,14 @@ import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
 import net.minecraft.client.renderer.color.IItemColor;
+import net.minecraft.client.renderer.entity.Render;
+import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fluids.IFluidBlock;
+import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
@@ -89,8 +92,18 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 	
 	@Override
 	public void RegisterRenderEntities() {
-		RenderingRegistry.registerEntityRenderingHandler(EntityBiplane.class, new RenderBiplane());
-		RenderingRegistry.registerEntityRenderingHandler(EntityAirplaneCamera.class, new RenderAirplaneRider(Minecraft.getMinecraft().getRenderManager()));
+		RenderingRegistry.registerEntityRenderingHandler(EntityBiplane.class, new IRenderFactory() {
+			@Override
+			public Render createRenderFor(RenderManager manager) {
+				return new RenderBiplane(manager);
+			}
+		});
+		RenderingRegistry.registerEntityRenderingHandler(EntityAirplaneCamera.class, new IRenderFactory() {
+			@Override
+			public Render createRenderFor(RenderManager manager) {
+				return new RenderAirplaneRider(manager);
+			}
+		});
 	}
 	
 	@Override

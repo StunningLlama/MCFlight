@@ -175,7 +175,8 @@ public class Mcflight {
 		block_oil = new BlockOil(fluid_oil, Material.WATER).setCreativeTab(tab_aircraft).setUnlocalizedName("oil");
 		GameRegistry.register(block_oil, new ResourceLocation("mcflight:oil_block"));
 		proxy.RegisterFluidModel((IFluidBlock)block_oil);
-		
+
+		proxy.RegisterRenderEntities();
 
 		ResourceLocation soundloc = new ResourceLocation("mcflight", "airplane.biplane.engine");
 		sound_engine = new SoundEvent(soundloc);
@@ -220,7 +221,6 @@ public class Mcflight {
         //ItemColors.
 		proxy.RegisterRenderItems();
 		EntityRegistry.registerModEntity(new ResourceLocation("mcflight:biplane"), EntityBiplane.class, "biplane", 0, this, 64, 20, true);
-		proxy.RegisterRenderEntities();
 		proxy.RegisterRenderGUI();
 		MinecraftForge.EVENT_BUS.register(new McflightEventHandler());
 		//GameRegistry.registerWorldGenerator(new McflightWorldGenerator(), 10);
@@ -256,16 +256,12 @@ public class Mcflight {
 		    map.put("default", prender);
 		    map.put("slim", new CustomRenderPlayer(rendermanager, true));
 		} catch (NoSuchFieldException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (SecurityException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalArgumentException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} catch (IllegalAccessException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
