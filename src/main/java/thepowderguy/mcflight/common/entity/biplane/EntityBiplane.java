@@ -1,7 +1,5 @@
 package thepowderguy.mcflight.common.entity.biplane;
 
-import net.minecraft.entity.SharedMonsterAttributes;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.world.World;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;

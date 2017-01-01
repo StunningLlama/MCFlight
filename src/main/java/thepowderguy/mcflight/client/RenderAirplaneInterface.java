@@ -2,24 +2,19 @@ package thepowderguy.mcflight.client;
 
 import java.text.DecimalFormat;
 
-import org.lwjgl.input.Keyboard;
 import org.lwjgl.opengl.GL11;
 
-import thepowderguy.mcflight.common.Mcflight;
-import thepowderguy.mcflight.common.entity.EntityAirplane;
-import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
-import thepowderguy.mcflight.util.Mat3;
-import thepowderguy.mcflight.util.Vec3;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
 import net.minecraft.client.gui.Gui;
 import net.minecraft.client.renderer.GlStateManager;
-import net.minecraft.client.renderer.Tessellator;
-import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent;
 import net.minecraftforge.client.event.RenderGameOverlayEvent.ElementType;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
-import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
+import thepowderguy.mcflight.common.Mcflight;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
+import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
+import thepowderguy.mcflight.util.Vec3;
 
 public class RenderAirplaneInterface extends Gui {
 

@@ -1,24 +1,12 @@
 package thepowderguy.mcflight.common.entity;
 
-import java.util.Random;
-
-import com.google.common.collect.Lists;
-import com.google.common.collect.Sets;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.settings.GameSettings;
-import net.minecraft.command.CommandResultStats;
 import net.minecraft.entity.Entity;
-import net.minecraft.entity.EntityLiving;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.nbt.NBTTagCompound;
-import net.minecraft.network.datasync.EntityDataManager;
-import net.minecraft.server.MinecraftServer;
-import net.minecraft.util.DamageSource;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
-import net.minecraft.world.WorldServer;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;

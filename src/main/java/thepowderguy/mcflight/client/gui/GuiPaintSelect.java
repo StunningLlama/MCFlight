@@ -2,15 +2,9 @@ package thepowderguy.mcflight.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.FontRenderer;
-import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiButton;
 import net.minecraft.client.gui.GuiScreen;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.item.EnumDyeColor;
-import net.minecraft.util.math.RayTraceResult;
 import thepowderguy.mcflight.common.Mcflight;
-import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 
 public class GuiPaintSelect extends GuiScreen {

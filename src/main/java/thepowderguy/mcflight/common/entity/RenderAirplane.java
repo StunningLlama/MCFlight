@@ -2,14 +2,12 @@ package thepowderguy.mcflight.common.entity;
 
 import org.lwjgl.opengl.GL11;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
-import net.minecraft.util.ResourceLocation;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.physics.CollisionPoint;
 import thepowderguy.mcflight.physics.ControlSurface;

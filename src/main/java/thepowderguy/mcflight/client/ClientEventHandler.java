@@ -14,7 +14,6 @@ import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.CameraView;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
-import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
 
 public class ClientEventHandler {

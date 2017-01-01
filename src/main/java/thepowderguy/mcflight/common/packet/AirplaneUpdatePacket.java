@@ -1,9 +1,6 @@
 package thepowderguy.mcflight.common.packet;
 
 import io.netty.buffer.ByteBuf;
-import net.minecraft.client.Minecraft;
-import net.minecraft.entity.player.EntityPlayer;
-import net.minecraftforge.fml.common.network.ByteBufUtils;
 import net.minecraftforge.fml.common.network.simpleimpl.IMessage;
 
 public class AirplaneUpdatePacket implements IMessage {

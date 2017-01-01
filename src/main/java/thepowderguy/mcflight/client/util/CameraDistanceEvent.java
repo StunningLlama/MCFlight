@@ -1,7 +1,6 @@
 package thepowderguy.mcflight.client.util;
 
 import net.minecraft.client.entity.EntityPlayerSP;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraftforge.fml.common.eventhandler.Event;
 
 public class CameraDistanceEvent extends Event {
