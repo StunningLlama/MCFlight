@@ -21,12 +21,12 @@ public class EntityAirplaneCamera extends Entity {
 	//Tail view
 	//Wing view?
 	
-	static CameraView view_cockpit = new CameraView("airplane.view.cockpit");
-	static CameraView view_tail = new CameraView("airplane.view.tail");
-	static CameraView view_follow = new CameraView("airplane.view.follow");
-	static CameraView view_wing_L = new CameraView("airplane.view.wingl");
-	static CameraView view_wing_R = new CameraView("airplane.view.wingr");
-	static CameraView view_passenger = new CameraView("airplane.view.passenger");
+	static CameraView view_cockpit = new CameraView("airplane.view.cockpit", false);
+	static CameraView view_tail = new CameraView("airplane.view.tail", true);
+	static CameraView view_follow = new CameraView("airplane.view.follow", true);
+	static CameraView view_wing_L = new CameraView("airplane.view.wingl", true);
+	static CameraView view_wing_R = new CameraView("airplane.view.wingr", true);
+	static CameraView view_passenger = new CameraView("airplane.view.passenger", true);
 	
 	public static float min_zoom = 1.0f;
 	public static float max_zoom = 10.0f;
@@ -188,18 +188,19 @@ this.setPosition(posX, posY, posZ);
 
 			if (isPlayerRiding) {
 				Minecraft mc = Minecraft.getMinecraft();
+				CameraView currentview = views[Mcflight.keyhandler.camera_mode];
 				if (Mcflight.keyhandler.look_around.isKeyDown()) {
 					mc.mouseHelper.mouseXYChange();
 					int dx = mc.mouseHelper.deltaX;
 					int dy = mc.mouseHelper.deltaY;
-					views[Mcflight.keyhandler.camera_mode].viewYawOffset += dx / -20.0;
-					views[Mcflight.keyhandler.camera_mode].viewPitchOffset += dy / -20.0;
-					views[Mcflight.keyhandler.camera_mode].viewYawOffset = EntityAirplane.clamp(-180, views[Mcflight.keyhandler.camera_mode].viewYawOffset, 180);
-					views[Mcflight.keyhandler.camera_mode].viewPitchOffset = EntityAirplane.clamp(-90, views[Mcflight.keyhandler.camera_mode].viewPitchOffset, 90);
+					currentview.viewYawOffset += dx / -20.0;
+					currentview.viewPitchOffset += dy / -20.0;
+					currentview.viewYawOffset = EntityAirplane.clamp(-180, currentview.viewYawOffset, 180);
+					currentview.viewPitchOffset = EntityAirplane.clamp(-90, currentview.viewPitchOffset, 90);
 				}
 				int view_id = Mcflight.keyhandler.camera_mode;
 				Mat3 basetransform = null;
-				Mat3 looktransform = Mat3.getTransformMatrix(views[Mcflight.keyhandler.camera_mode].viewYawOffset, views[Mcflight.keyhandler.camera_mode].viewPitchOffset, 0);
+				Mat3 looktransform = Mat3.getTransformMatrix(currentview.viewYawOffset, currentview.viewPitchOffset, 0);
 				GameSettings settings = Minecraft.getMinecraft().gameSettings;
 				Vec3 rot = new Vec3(entity.rotationYaw, entity.rotationPitch, entity.rotationRoll);
 				Vec3 entPos = new Vec3(entity.posX, entity.posY , entity.posZ);
@@ -243,6 +244,22 @@ this.setPosition(posX, posY, posZ);
 				Mat3 comtransform = Mat3.mul(basetransform, looktransform);
 				Vec3 out = Mat3.getangles(comtransform);
 				this.setPosition(camPos.x, camPos.y, camPos.z);
+				AbstractClientPlayer player = this.getPlayer();
+				player.prevRotationYawHead = player.rotationYawHead;
+				player.prevRotationYaw = player.rotationYawHead;
+				player.prevRotationPitch = player.rotationPitch;
+				player.rotationYawHead = (float) -currentview.viewYawOffset;
+				player.rotationYaw = (float) -currentview.viewYawOffset;
+				player.rotationPitch = (float) currentview.viewPitchOffset;
+				/*player.prevRotationYawHead = 0;
+				player.prevRotationYaw = 0;
+				player.prevRotationPitch = 0;
+				player.rotationYawHead = 0;
+				player.rotationYaw = 0;
+				player.rotationPitch = 0;
+				player.renderYawOffset = 0;
+				player.prevRenderYawOffset = 0;*/
+				//player.turn(yaw, pitch);
 				this.prevRotationYaw = rotationYaw;
 				this.prevRotationPitch = rotationPitch;
 				this.prevRotationRoll = rotationRoll;

@@ -44,8 +44,18 @@ public class Vec3 {
 		return Math.sqrt(a.x*a.x + a.y*a.y + a.z*a.z);
 	}
 	
+	public static Vec3 proj(Vec3 a, Vec3 b) {
+		if (b.mag() == 0)
+			return new Vec3();
+		return Vec3.mul(b, Vec3.dot(a, b)/b.magsq());
+	}
+	
 	public double mag() {
 		return Math.sqrt(x*x + y*y + z*z);
+	}
+	
+	public double magsq() {
+		return x*x + y*y + z*z;
 	}
 
 	public static double zeroIfNaN(double a) {

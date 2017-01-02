@@ -6,11 +6,13 @@ public class CameraView {
 	public double viewYawOffset;
 	public double viewPitchOffset;
 	public final String name;
-	public CameraView(String namein) {
+	public final boolean renderPlayer;
+	public CameraView(String namein, boolean doRenderPlayer) {
 		name = namein;
 		zoom = 7f;
 		prevZoom = zoom;
 		viewYawOffset = 0;
 		viewPitchOffset = 0;
+		renderPlayer = doRenderPlayer;
 	}
 }

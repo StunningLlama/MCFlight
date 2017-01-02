@@ -23,7 +23,7 @@ public class AerofoilWing extends ControlSurface {
 	}
 
 	public double getDragFromAlpha(double a) {
-		return dSin(a/2.0)*dSin(a/2.0)*2.0;
+		return dSin(a)*dSin(a)*2.0;
 	}
 	
 

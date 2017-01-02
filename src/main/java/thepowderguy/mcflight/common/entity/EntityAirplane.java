@@ -7,6 +7,8 @@ import java.util.List;
 
 import javax.annotation.Nullable;
 
+import org.lwjgl.input.Keyboard;
+
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.RenderGlobal;
@@ -213,17 +215,17 @@ public abstract class EntityAirplane extends Entity {
 	public Vec3 gravity_vec = new Vec3(0.0, -gravity_const, 0.0);
 	
 	public static double gravity_const = 0.025;
-	public static double drag_const = 0.01;//0.025;
+	public static double drag_const = 0.004;//0.025;
 	public static double friction_const = 0.001;
 	public static double dragMul_forward = -1.0;
 	public static double dragMul_sideways = -1.0;
 	public static double dragMul_vertical = -1.0;
-	public static double lift_const = 0.04;//0.12;
+	public static double lift_const = 0.035;//0.12;
 	public static double camber = 0;
 	public static double thrust_const = 0.01;
 	public static double controlSensitivity = 75.0;
 	public static double torqueMultiplier = 20.0;
-	public static double rotationSpeedDecay = 0.8;
+	public static double rotationSpeedDecay = 0.95;
 	
 	public static double mouseX = 0;
 	public static double mouseY = 0;
@@ -405,8 +407,8 @@ public abstract class EntityAirplane extends Entity {
 
 		//Drag
 		//bodyDragUp is basically the same thing as lift induced drag
-		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && input.brake.isKeyDown() ? 2.0 : 1.0);
-		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways * Vec3.sinTheta(vel, vfwd);
+		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && input.brake.isKeyDown() ? 1.5 : 1.0);
+		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways * Vec3.sinTheta(vel, vfwd) * -1.0;
 		Vec3 dirvec = Vec3.cross(vfwd, Vec3.cross(vfwd, vel)).unitvector();
 		//double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
 		drag_vec = new Vec3 (
@@ -427,24 +429,32 @@ public abstract class EntityAirplane extends Entity {
 		double mag_lift = 0f;
 		double mag_inddrag = 0f;
 		double angleOfAttackWing = 0f;
+
+		if (Keyboard.isKeyDown(Keyboard.KEY_C))
+			angVelocity = new Vec3(0.0, 5.0, 0.0);
 		
 		for (ControlSurface cs: this.controlSurfaces) {
+
+			Vec3 tpos = transform.transform(cs.position);
+			Vec3 distaxis = Vec3.sub(tpos, Vec3.proj(tpos, angVelocity));
+			Vec3 cvel = Vec3.add(vel, Vec3.cross(Vec3.mul(angVelocity, Math.PI/180.0), distaxis));
+			if (angVelocity.magsq() == 0)
+				cvel = vel;
 			
-			double coefficient = lift_const * velocity_sq * air / weight;
-			Vec3 out = Vec3.unitvector(Vec3.cross(vel, Vec3.cross(cs.normal, vel)));
-			double angleOfAttack = Vec3.angle(cs.getNormal(), vel) - 90.0;
+			double coefficient = lift_const * cvel.magsq() * air / weight;
+			Vec3 out = Vec3.unitvector(Vec3.cross(cvel, Vec3.cross(cs.normal, cvel)));
+			double angleOfAttack = Vec3.angle(cs.getNormal(), cvel) - 90.0;
 			cs.setAngleOfAttack(angleOfAttack);
 			
 			double lift = cs.getLiftFromAlpha(angleOfAttack) * coefficient * cs.wingArea;
 			Vec3 lift_vec = Vec3.mul(out, lift);
 			
 			double inducedDrag = cs.getDragFromAlpha(angleOfAttack) * coefficient * cs.wingArea;
-			Vec3 inddrag_vec = Vec3.unitvector(vel).mul(-1.0 * inducedDrag);
+			Vec3 inddrag_vec = Vec3.unitvector(cvel).mul(-1.0 * inducedDrag);
 			
 			Vec3 force = Vec3.add(lift_vec, inddrag_vec);
 			tmpMotion.add(force);
 			cs.setForce(force);
-			Vec3 tpos = transform.transform(cs.position);
 			cs.setPosition(tpos);
 			angVelocity.add(Vec3.cross(tpos, force).mul(this.torqueMultiplier));
 			
@@ -546,6 +556,12 @@ public abstract class EntityAirplane extends Entity {
 		motionZ = newMotion.z;
 		
 		angVelocity.add(angmotiondiff);
+		if (this.onGround) { //collision damping
+			Vec3 para = Vec3.proj(angVelocity, angmotiondiff);
+			Vec3 perp = Vec3.sub(angVelocity, para);
+			angVelocity.set(Vec3.add(para.mul(0.85), perp));
+		}
+		
 		double am = 1.0;
 	//	if (isOnGround)
 	//		am = 0.5;
@@ -556,7 +572,7 @@ public abstract class EntityAirplane extends Entity {
 		
 		double mag_drag = drag_vec.mag();
 		double mag_thrust = thrust_vec.mag();
-
+		
 		// 1. Convert pitch/yaw/roll axis to vectors
 		// 2. Use axis angle rotation to rotate vectors (these are now the values of a transformation matrix)
 		// 3. Convert transformation matrix back to euler angles
@@ -644,6 +660,67 @@ public abstract class EntityAirplane extends Entity {
 		vectorsInitialized = true;
 	}
 	
+	
+	public static double[] lift = {0, 0.0865682024, 0.173132549, 0.2596737611, 0.3461417137, 0.432440013, 0.5184105729, 0.6038181922, 0.6883351314, 0.7715256899, 0.8528307828, 0.9315525179, 1.0068387728, 1.0776677716, 1.1428326622, 1.2009260928, 1.2503247895, 1.2891741327, 1.3153727343, 1.3265570149, 1.3200857803, 1.2930247988, 1.2421313779, 1.1638389418, 1.0542416076, 0.9197011011, 0.8668813789, 0.8447997863, 0.8393419844, 0.8485792446, 0.8660254038, 0.8829475928, 0.8987940463, 0.9135454576, 0.9271838546, 0.9396926208, 0.9510565163, 0.9612616959, 0.9702957263, 0.9781476007, 0.984807753, 0.9902680687, 0.9945218954, 0.9975640503, 0.999390827, 1, 0.999390827, 0.9975640503, 0.9945218954, 0.9902680687, 0.984807753, 0.9781476007, 0.9702957263, 0.961261696, 0.9510565163, 0.9396926208, 0.9271838546, 0.9135454577, 0.8987940463, 0.8829475929, 0.8660254038, 0.8480480962, 0.8290375726, 0.8090169944, 0.7880107536, 0.7660444432, 0.7431448255, 0.7193398004, 0.6946583705, 0.6691306064, 0.6427876097, 0.6156614754, 0.5877852524, 0.5591929035, 0.5299192643, 0.5000000001, 0.4694715629, 0.4383711469, 0.4067366431, 0.3746065935, 0.3420201434, 0.3090169945, 0.2756373559, 0.2419218957, 0.2079116909, 0.1736481778, 0.139173101, 0.1045284634, 0.0697564738, 0.0348994968, 0};
+	public static double getLiftFromAlpha(double a) {
+		if (!Double.isFinite(a))
+			return 0;
+		double x = Math.abs(a);
+		int lower = (int)Math.floor(x);
+		if (lower >= 90 || lower < 0)
+			return 0.0;
+		double phigher = x-Math.floor(x);
+		double plower = 1.0-phigher;
+		return (lift[lower]*plower + lift[lower+1]*phigher)*Math.signum(a);
+	}
+
+	public static double getDragFromAlpha(double a) {
+		return dSin(a)*dSin(a)*2.0;
+	}
+	
+	static private void test(double v) {
+		//v = 0;
+		Vec3 vel = new Vec3(0, 0, v);
+		double velocity_sq = v*v;
+		double angle = 0;
+		
+
+		double coefficient = lift_const * velocity_sq;
+		
+		double interval = 1.0;
+		double lift = -100;
+		while (Math.abs(lift-gravity_const) > 0.000001 && angle <= 90) {
+			lift = getLiftFromAlpha(angle) * coefficient * 4.0;
+			if (lift > gravity_const) {
+				angle = angle - interval;
+				interval = interval*0.1;
+			} else {
+				angle = angle + interval;
+			}
+		}
+		double inducedDrag = 0;
+		if (angle < 89.5)
+		{
+			inducedDrag = getDragFromAlpha(angle) * coefficient * 4.0;
+		}
+		
+	
+		Vec3 _vfwd = new Vec3(0, dCos(angle), dSin(angle));
+		double bodyDragFwd = velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, _vfwd);
+		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways * Vec3.sinTheta(vel, _vfwd) * -1.0;
+		Vec3 dirvec = Vec3.cross(_vfwd, Vec3.cross(_vfwd, vel)).unitvector();
+		//double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
+		Vec3 _drag_vec = new Vec3 (
+				bodyDragFwd*_vfwd.x + dirvec.x * bodyDragSideways,
+				bodyDragFwd*_vfwd.y + dirvec.y * bodyDragSideways,
+				bodyDragFwd*_vfwd.z + dirvec.z * bodyDragSideways);
+		double paraDrag = _drag_vec.mag();
+		System.out.println(String.format("%f\t%f\t%f", v*72.0, inducedDrag, paraDrag));
+	}
+	public static void print() {
+		for (int i = 0; i < 144; i++)
+			test(i/144.0);
+	}
 	public void updateControls() {
 
 		prevForceElevator = forceElevator;
@@ -1043,10 +1120,10 @@ public abstract class EntityAirplane extends Entity {
 		if (passenger != null) {
 			Vec3 riderPos = Vec3.mul(this.vup, -1.0);
 			passenger.setPosition(this.posX + riderPos.x, this.posY + riderPos.y, this.posZ+riderPos.z);
-			passenger.rotationYaw = -rotationYaw;
-			passenger.rotationPitch = rotationPitch;
+			//passenger.rotationYaw = -rotationYaw;
+			//passenger.rotationPitch = rotationPitch;
 			if (passenger instanceof EntityPlayer) {
-				//((EntityPlayer)passenger).rotationYawHead
+			//	((EntityPlayer)passenger).rota
 			}
 		}
 	}

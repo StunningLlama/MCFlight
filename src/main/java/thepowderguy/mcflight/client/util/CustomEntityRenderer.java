@@ -92,6 +92,7 @@ import net.minecraft.world.biome.Biome;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
+import thepowderguy.mcflight.common.entity.EntityAirplane;
 
 @SideOnly(Side.CLIENT)
 public class CustomEntityRenderer extends EntityRenderer implements IResourceManagerReloadListener
@@ -840,7 +841,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
             boolean flag = this.mc.getRenderViewEntity() instanceof EntityLivingBase && ((EntityLivingBase)this.mc.getRenderViewEntity()).isPlayerSleeping();
 
             if (!net.minecraftforge.client.ForgeHooksClient.renderFirstPersonHand(mc.renderGlobal, partialTicks, pass))
-            if (this.mc.gameSettings.thirdPersonView == 0 && !flag && !this.mc.gameSettings.hideGUI && !this.mc.playerController.isSpectator())
+            if (this.mc.gameSettings.thirdPersonView == 0 && !flag && !this.mc.gameSettings.hideGUI && !this.mc.playerController.isSpectator() && !(this.mc.player.getRidingEntity() instanceof EntityAirplane))
             {
                 this.enableLightmap();
                 this.itemRenderer.renderItemInFirstPerson(partialTicks);

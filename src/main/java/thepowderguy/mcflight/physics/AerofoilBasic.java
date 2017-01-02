@@ -8,12 +8,12 @@ public class AerofoilBasic extends ControlSurface {
 
 	@Override
 	public double getLiftFromAlpha(double a) {
-		return dSin(a/2.0)*dCos(a/2.0)*2.0;
+		return dSin(a)*dCos(a)*2.0;
 	}
 	
 
 	public double getDragFromAlpha(double a) {
-		return dSin(a/2.0)*dSin(a/2.0)*2.0;
+		return dSin(a)*dSin(a)*2.0;
 	}
 	
 

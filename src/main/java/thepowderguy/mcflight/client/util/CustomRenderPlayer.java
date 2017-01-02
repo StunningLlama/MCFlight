@@ -1,6 +1,5 @@
 package thepowderguy.mcflight.client.util;
 
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.entity.AbstractClientPlayer;
 import net.minecraft.client.entity.EntityPlayerSP;
 import net.minecraft.client.model.ModelBiped;
@@ -18,7 +17,9 @@ import net.minecraft.util.EnumHandSide;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.util.text.TextFormatting;
+import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
+import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.util.Vec3;
 
 public class CustomRenderPlayer extends RenderPlayer
@@ -36,7 +37,7 @@ public class CustomRenderPlayer extends RenderPlayer
 	public void doRender(AbstractClientPlayer entity, double x, double y, double z, float entityYaw, float partialTicks)
     {
         if (net.minecraftforge.common.MinecraftForge.EVENT_BUS.post(new net.minecraftforge.client.event.RenderPlayerEvent.Pre(entity, this, partialTicks, x, y, z))) return;
-        if (!entity.isUser() || this.renderManager.renderViewEntity == entity || (entity.getRidingEntity() instanceof EntityAirplane && Minecraft.getMinecraft().gameSettings.thirdPersonView > 0))
+        if (!entity.isUser() || this.renderManager.renderViewEntity == entity || (entity.getRidingEntity() instanceof EntityAirplane && EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode].renderPlayer))
         {
             double d0 = y;
 
@@ -262,7 +263,7 @@ public class CustomRenderPlayer extends RenderPlayer
 
     protected void applyRotations(AbstractClientPlayer entityLiving, float p_77043_2_, float p_77043_3_, float partialTicks)
     {
-    	boolean flagRenderCustom = entityLiving.getRidingEntity() instanceof EntityAirplane && Minecraft.getMinecraft().gameSettings.thirdPersonView > 0;
+    	boolean flagRenderCustom = entityLiving.getRidingEntity() instanceof EntityAirplane &&  EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode].renderPlayer;
         if (flagRenderCustom)
         {
         	EntityAirplane entity = (EntityAirplane)entityLiving.getRidingEntity();
