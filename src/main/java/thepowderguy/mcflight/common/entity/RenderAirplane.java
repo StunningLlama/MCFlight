@@ -21,7 +21,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
 	}
 
 	final Vec3 zero = new Vec3();
-    double vscale = 100.0;
+    double vscale = 0.5;
     
 	public void doRender(T entity, double x, double y, double z, float par1, float partialTicks) //WTF is partialticks
 	{
@@ -43,6 +43,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		renderVector(zero, entity.gravity_vec, vertexbuffer, 255, 255, 0, vscale);
     		renderVector(zero, entity.thrust_vec, vertexbuffer, 255, 0, 255, vscale);
     		renderVector(zero, entity.drag_vec, vertexbuffer, 255, 0, 0, vscale);
+    		//renderVector(zero, entity.mo, vertexbuffer, 0, 255, 255, 10.0);
     		for (CollisionPoint i: entity.collisionPoints)
     			renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(), vertexbuffer, 0, 0, 0, vscale);
     		for (ControlSurface i: entity.controlSurfaces) {

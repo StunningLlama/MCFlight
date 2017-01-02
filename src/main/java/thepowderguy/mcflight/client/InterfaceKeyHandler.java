@@ -77,7 +77,6 @@ public class InterfaceKeyHandler {
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if (toggleDebug.isPressed()) {
 			debug_toggled = !debug_toggled;
-			EntityAirplane.print();
 		}
 		if (toggleVector.isPressed()) {
 			vectordrawing_toggled = !vectordrawing_toggled;

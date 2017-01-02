@@ -17,7 +17,7 @@ public class AirplanePacketListener implements IMessageHandler<AirplaneUpdatePac
 			a.posX = message.positionX;
 			a.posY = message.positionY;
 			a.posZ = message.positionZ;
-			a.engine = message.engine;
+			a.throttle = message.engine;
 			a.rotationPitch = message.rotationPitch;
 			a.rotationRoll = message.rotationRoll;
 			a.rotationYaw = message.rotationYaw;

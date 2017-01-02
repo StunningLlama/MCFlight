@@ -280,7 +280,30 @@ public class CustomRenderPlayer extends RenderPlayer
         }
         else if (entityLiving.isElytraFlying())
         {
-            super.applyRotations(entityLiving, p_77043_2_, p_77043_3_, partialTicks);
+            GlStateManager.rotate(180.0F - p_77043_3_, 0.0F, 1.0F, 0.0F);
+
+            if (entityLiving.deathTime > 0)
+            {
+                float f = ((float)entityLiving.deathTime + partialTicks - 1.0F) / 20.0F * 1.6F;
+                f = MathHelper.sqrt(f);
+
+                if (f > 1.0F)
+                {
+                    f = 1.0F;
+                }
+
+                GlStateManager.rotate(f * this.getDeathMaxRotation(entityLiving), 0.0F, 0.0F, 1.0F);
+            }
+            else
+            {
+                String s = TextFormatting.getTextWithoutFormattingCodes(entityLiving.getName());
+
+                if (s != null && ("Dinnerbone".equals(s) || "Grumm".equals(s)) && (!(entityLiving instanceof EntityPlayer) || ((EntityPlayer)entityLiving).isWearing(EnumPlayerModelParts.CAPE)))
+                {
+                    GlStateManager.translate(0.0F, entityLiving.height + 0.1F, 0.0F);
+                    GlStateManager.rotate(180.0F, 0.0F, 0.0F, 1.0F);
+                }
+            }
             float f = (float)entityLiving.getTicksElytraFlying() + partialTicks;
             float f1 = MathHelper.clamp(f * f / 100.0F, 0.0F, 1.0F);
             GlStateManager.rotate(f1 * (-90.0F - entityLiving.rotationPitch), 1.0F, 0.0F, 0.0F);

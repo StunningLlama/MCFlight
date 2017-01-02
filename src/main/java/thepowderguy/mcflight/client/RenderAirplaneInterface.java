@@ -1,7 +1,5 @@
 package thepowderguy.mcflight.client;
 
-import java.text.DecimalFormat;
-
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.Minecraft;
@@ -28,7 +26,6 @@ public class RenderAirplaneInterface extends Gui {
 	
 	static int green = 0xff00ff00;
 	static int red = 0xffff0000;
-	static DecimalFormat numformat = new DecimalFormat("#.##");
 
 
 	private boolean isPlayerRidingAirplane() {
@@ -156,10 +153,11 @@ public class RenderAirplaneInterface extends Gui {
 			for (int i = 10*(int)Math.ceil((yaw-45)/10.0); i < yaw+45+5; i+= 5)
 				this.drawVerticalLine((int) (cX + (yaw-i)*2.0), cY+110, cY+120, green);
 
-			font.drawString("Fuel: " + numformat.format(100.0*C_FUEL/EntityBiplane.fuelCapacity) + "%", cX-100, cY-92, green);
 			if (!entity.onGround && entity.stall)
-				font.drawString("\u00a7nSTALL!", cX-130, cY-92, red);
-			font.drawString("Acceleraton: " + numformat.format(acc/EntityAirplane.gravity_const) + "g", cX-20, cY-92, green);
+				font.drawString("\u00a7nSTALL!", cX-100, cY-104, red);
+			font.drawString(String.format("Fuel: %.2f%%", 100.0*C_FUEL/EntityBiplane.fuelCapacity), cX-100, cY-92, green);
+			font.drawString(String.format("Acceleraton: %.2fg", acc/EntityAirplane.gravity_const), cX+60, cY-92, green);
+			font.drawString(String.format("Engine: %d", (int)Math.round(throttle*100.0)), cX-20, cY-92, green);
 
 		}
 		font.drawString("+", (int)EntityAirplane.mouseX/2+cX - 2, cY-(int)EntityAirplane.mouseY/2 - 3, 0xffffffff);
@@ -175,14 +173,16 @@ public class RenderAirplaneInterface extends Gui {
 	public double yaw = 0;
 	public double roll = 0;
 	public double acc = 0;
+	public double throttle = 0;
 	
-	public void setVars(double s, double ac, double a, double p, double y, double r) {
+	public void setVars(double s, double ac, double a, double p, double y, double r, double t) {
 		speed = s;
 		alt = a;
 		pitch = p;
 		yaw = y;
 		roll = r;
-		acc = ac;
+		acc = ac*100.0;
+		throttle = t;
 	}
 	
 	
@@ -199,6 +199,7 @@ public class RenderAirplaneInterface extends Gui {
     public double C_ROT_ROLL = 0.0;
     public double C_LIFT = 0.0;
     public double C_DRAG = 0.0;
+    public double C_GRAV = 0.0;
     public double C_ANGVEL = 0.0;
     public double C_INDDRAG = 0.0;
     public double C_THRUST = 0.0;
@@ -209,12 +210,13 @@ public class RenderAirplaneInterface extends Gui {
     public double C_X = 0.0;
     public double C_Y = 0.0;
     public double C_Z = 0.0;
+    public boolean B_MV = false;
     String asd = "";
    // public double tmpmrr = 0.0;
     
-    public void setDebugVars(double vel, double aoa, double lift, double drag, double inddrag, double thrust, double air, double angVel, EntityAirplane airplane)
+    public void setDebugVars(double vel, double aoa, double lift, double drag, double inddrag, double thrust, double grav, double air, double angVel, EntityAirplane airplane)
     {
-    	C_VEL = vel;
+    	C_VEL = vel*20.0;
     	C_AOA = aoa;
     	C_LIFT = lift;
     	C_DRAG = drag;
@@ -233,41 +235,50 @@ public class RenderAirplaneInterface extends Gui {
     	C_FUEL = airplane.getFuel();
     	C_AIR = air;
 //    	tmpmrr = airplane.rotationRoll - airplane.prevRotationRoll;
-    	C_ANGVEL = angVel;
-    	C_WEIGHT = airplane.weight;
+    	C_ANGVEL = angVel*20.0;
+    	C_WEIGHT = airplane.mass;
+    	C_GRAV = grav;
+    	B_MV = airplane.ismoving;
     	asd = airplane.text;
     }
     
 	public void drawDebugScr()
 	{
     	//mc.entityRenderer.setupOverlayRendering();
-    	drawStr("Velocity: " 				, C_VEL);
-    	drawStr("Acceleration: " 				, acc);
-    	drawStr("Thrust: " 					, C_THRUST);
-    	drawStr("Angle of Attack: " 		, C_AOA);
-    	drawStr("Lift: " 					, C_LIFT);
-    	drawStr("Induced Drag: " 					, C_INDDRAG);
-    	drawStr("Drag: " 					, C_DRAG);
-    	drawStr("Pitch: " 				, C_ROT_PITCH);
-    	drawStr("Yaw: " 				, C_ROT_YAW);
-    	drawStr("Roll: " 				, C_ROT_ROLL);
-    	drawStr("X: " 						, C_X);
-    	drawStr("Y: " 						, C_Y);
-    	drawStr("Z: " 						, C_Z);
-    	drawStr("Air density: " 		, C_AIR);
-    	drawStr("Angular Velocity: " 		, C_ANGVEL);
-    	drawStr("Fuel: " 					, C_FUEL);
-    	drawStr("Weight: " 					, C_WEIGHT);
+    	drawStr4("Velocity (m/s): " 				, C_VEL);
+    	drawStr4("Accel (g): " 				, acc);
+    	drawStr1("Angle of Attack (deg): " 		, C_AOA);
+    	drawStr1("Thrust   (kN): " 					, C_THRUST);
+    	drawStr1("Lift     (kN): " 					, C_LIFT);
+    	drawStr1("Ind_Drag (kN): " 					, C_INDDRAG);
+    	drawStr1("Drag     (kN): " 					, C_DRAG);
+    	drawStr1("Gravity  (kN): " 					, C_GRAV);
+    	drawStr1("Pitch (deg):  " 				, C_ROT_PITCH);
+    	drawStr1("Yaw   (deg): " 				, C_ROT_YAW);
+    	drawStr1("Roll  (deg): " 				, C_ROT_ROLL);
+    	drawStr1("X: " 						, C_X);
+    	drawStr1("Y: " 						, C_Y);
+    	drawStr1("Z: " 						, C_Z);
+    	drawStr4("Air density (B): " 		, C_AIR);
+    	drawStr4("Ang Vel (deg/sec): " 		, C_ANGVEL);
+    	drawStr4("Fuel: " 					, C_FUEL);
+    	drawStr1("Mass (kg): " 					, C_WEIGHT);
     	drawStr("On ground: " 				, B_OG);
-    	drawStr(asd, 0);
+    	drawStr("Moving: " 				, B_MV);
+    	//drawStr4(asd, 0);
     	//drawStr("Prev: " 					, tmp1);
     	//drawStr("Correct: " 				, tmp2);
     	y = 2;
 	}
 	
-	private void drawStr(String str, double val)
+	private void drawStr4(String str, double val)
 	{
-		font.drawStringWithShadow(str+String.format("%.4f", val), 2, y, (val == 0.0? colorzero: (val > 0.0? colorpos: colorneg)));
+		font.drawStringWithShadow(str+String.format("%.4f", val), 2, y, ((val*val < 0.00001*0.00001)? colorzero: (val > 0.0? colorpos: colorneg)));
+		y += dy;
+	}
+	private void drawStr1(String str, double val)
+	{
+		font.drawStringWithShadow(str+String.format("%.2f", val), 2, y, ((val*val < 0.001*0.001)? colorzero: (val > 0.0? colorpos: colorneg)));
 		y += dy;
 	}
 
