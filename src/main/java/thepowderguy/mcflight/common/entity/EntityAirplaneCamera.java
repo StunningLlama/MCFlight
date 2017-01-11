@@ -23,6 +23,7 @@ public class EntityAirplaneCamera extends Entity {
 	
 	static CameraView view_cockpit = new CameraView("airplane.view.cockpit", false);
 	static CameraView view_tail = new CameraView("airplane.view.tail", true);
+	static CameraView view_behind = new CameraView("airplane.view.behind", true);
 	static CameraView view_follow = new CameraView("airplane.view.follow", true);
 	static CameraView view_wing_L = new CameraView("airplane.view.wingl", true);
 	static CameraView view_wing_R = new CameraView("airplane.view.wingr", true);
@@ -34,6 +35,7 @@ public class EntityAirplaneCamera extends Entity {
 	public static CameraView[] views = new CameraView[] {
 		view_cockpit  ,
 		view_tail     ,
+		view_behind	  ,
 		view_follow   ,
 		view_wing_L   ,
 		view_wing_R   ,
@@ -217,25 +219,30 @@ this.setPosition(posX, posY, posZ);
 					settings.thirdPersonView = 1;
 					break;
 				case 2:
-					basetransform = Mat3.getTransformMatrix(rot.x, 0f, 0f);
+					basetransform = Mat3.getTransformMatrix(rot.x, rot.y, 0f);
 					camPos = entPos;
 					settings.thirdPersonView = 1;
 					break;
 				case 3:
+					basetransform = Mat3.getTransformMatrix(rot.x, 0f, 0f);
+					camPos = entPos;
+					settings.thirdPersonView = 1;
+					break;
+				case 4:
 					Vec3 pos = transform.transform(new Vec3(3.0, 0.0, 0.0));
 					basetransform = getTransformFromPos(pos, entity.vfwd);
 					camPos = Vec3.add(entPos, pos);
 					settings.thirdPersonView = 0;
 					break;
-				case 4:
+				case 5:
 					Vec3 pos1 = transform.transform(new Vec3(-3.0, 0.0, 0.0));
 					basetransform = getTransformFromPos(pos1, Vec3.mul(entity.vfwd, -1.0));
 					camPos = Vec3.add(entPos, pos1);
 					settings.thirdPersonView = 0;
 					break;
-				case 5:
+				case 6:
 					basetransform = Mat3.getTransformMatrix(rot.x, rot.y, rot.z);
-					camPos = Vec3.add(entPos, Vec3.mul(entity.vup, 0.66), Vec3.mul(entity.vfwd, -2.0));
+					camPos = Vec3.add(entPos, Vec3.mul(entity.vup, 0.66), Vec3.mul(entity.vfwd, -1.2));
 					settings.thirdPersonView = 0;
 					break;
 				default:

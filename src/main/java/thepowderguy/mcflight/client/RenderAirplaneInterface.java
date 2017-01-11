@@ -273,12 +273,14 @@ public class RenderAirplaneInterface extends Gui {
 	
 	private void drawStr4(String str, double val)
 	{
-		font.drawStringWithShadow(str+String.format("%.4f", val), 2, y, ((val*val < 0.00001*0.00001)? colorzero: (val > 0.0? colorpos: colorneg)));
+		boolean approxzero = (val*val < 0.00001*0.00001);
+		font.drawStringWithShadow(str+String.format("%.4f", approxzero?0.0:val), 2, y, (approxzero? colorzero: (val > 0.0? colorpos: colorneg)));
 		y += dy;
 	}
 	private void drawStr1(String str, double val)
 	{
-		font.drawStringWithShadow(str+String.format("%.2f", val), 2, y, ((val*val < 0.001*0.001)? colorzero: (val > 0.0? colorpos: colorneg)));
+		boolean approxzero = (val*val < 0.001*0.001);
+		font.drawStringWithShadow(str+String.format("%.2f", approxzero?0.0:val), 2, y, (approxzero? colorzero: (val > 0.0? colorpos: colorneg)));
 		y += dy;
 	}
 

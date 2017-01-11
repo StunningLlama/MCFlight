@@ -19,6 +19,12 @@ public class Vec3 {
 		y = v.y;
 		z = v.z;
 	}
+	
+	public static Vec3 copy(Vec3 v) {
+		if (v == null)
+			return null;
+		return new Vec3(v);
+	}
 
 	public Vec3() {
 		this.x = 0.0;

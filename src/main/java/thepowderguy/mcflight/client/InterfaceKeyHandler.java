@@ -8,7 +8,6 @@ import net.minecraft.client.settings.KeyBinding;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
-import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 
 public class InterfaceKeyHandler {
@@ -85,7 +84,7 @@ public class InterfaceKeyHandler {
 			hud_toggled = !hud_toggled;
 		}
 		if (changeCamera.isPressed()) {
-			camera_mode = (camera_mode+1)%6;
+			camera_mode = (camera_mode+1)%7;
 			Minecraft.getMinecraft().ingameGUI.setOverlayMessage(I18n.format(EntityAirplaneCamera.views[camera_mode].name), false);
 		}
 	}

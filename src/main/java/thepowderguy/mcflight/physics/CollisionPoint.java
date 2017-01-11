@@ -38,4 +38,8 @@ public class CollisionPoint {
 	public Vec3 getInterpolatedPosition(float partialTicks) {
 		return Vec3.interpolate(this.prevtransformposition, this.transformposition, partialTicks);
 	}
+	
+	public CollisionPoint getInstance() {
+		return new CollisionPoint(position.x, position.y, position.z, friction, brakeMul);
+	}
 }
