@@ -2,9 +2,16 @@ package thepowderguy.mcflight.client;
 
 import org.lwjgl.input.Keyboard;
 
+import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.material.Material;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.resources.I18n;
 import net.minecraft.client.settings.KeyBinding;
+import net.minecraft.entity.player.EntityPlayer;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.text.ITextComponent;
+import net.minecraft.util.text.TextComponentString;
 import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
@@ -76,12 +83,30 @@ public class InterfaceKeyHandler {
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if (toggleDebug.isPressed()) {
 			debug_toggled = !debug_toggled;
+
+			EntityPlayer p = Minecraft.getMinecraft().player;
+			p.sendMessage(new TextComponentString("h1"));
+			BlockPos bp = new BlockPos(p.posX, p.posY, p.posZ);
+			IBlockState bs = p.world.getBlockState(bp);
+			Material m = bs.getMaterial();
+			p.sendMessage(new TextComponentString(m.toString()));
+			if (m == Material.WATER || m == Material.LAVA)
+			{
+				p.sendMessage(new TextComponentString("h2"));
+				float lvl = BlockLiquid.getLiquidHeightPercent(bs.getValue(BlockLiquid.LEVEL));
+				p.sendMessage(new TextComponentString(String.valueOf(lvl)));
+				if ((p.posY - Math.floor(p.posY)) < lvl)
+				{
+					p.sendMessage(new TextComponentString("asd"));
+				}
+			}
 		}
 		if (toggleVector.isPressed()) {
 			vectordrawing_toggled = !vectordrawing_toggled;
 		}
 		if (toggleHud.isPressed()) {
 			hud_toggled = !hud_toggled;
+			
 		}
 		if (changeCamera.isPressed()) {
 			camera_mode = (camera_mode+1)%7;

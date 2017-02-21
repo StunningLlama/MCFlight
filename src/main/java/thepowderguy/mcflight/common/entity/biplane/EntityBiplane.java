@@ -10,6 +10,7 @@ import thepowderguy.mcflight.physics.AerofoilCtrlSuface;
 import thepowderguy.mcflight.physics.AerofoilWing;
 import thepowderguy.mcflight.physics.CollisionPoint;
 import thepowderguy.mcflight.physics.ControlSurface;
+import thepowderguy.mcflight.physics.VolumeUnit;
 import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
 
@@ -47,22 +48,28 @@ public class EntityBiplane extends EntityAirplane {
 		defaultAirfoilSections.add(new AerofoilCtrlSuface	(23,	-7.0,	-12.0,	EntityBiplane.scale,	0.2,	new Vec3(0, 1, 0),	new Vec3(1, 0, 0)));
 
 		defaultCollisionPoints = new ArrayList<CollisionPoint>();
-		defaultCollisionPoints.add(new CollisionPoint	(5.5,	-16,	7.5,	0.4,	3.0)); //wheel
-		defaultCollisionPoints.add(new CollisionPoint	(-5.5,	-16,	7.5,	0.4,	3.0)); //wheel
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-9.0,	-49.0,	0.4,	1.0)); //tail wheel
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-2.5,	21.0,	1,		1.0)); //engine
-		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	-8,		9.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	-8,		-10.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(50.0,	-8,		9.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(50.0,	-8,		-10.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	12,		9.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	12,		-10.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(50.0,	12,		9.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(50.0,	12,		-10.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	9.0,	-49.0,	0.4,	1.0)); //tail wheel
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	12,		 0,		0.4,	1.0)); //tail wheel
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-8,		-10.0,	1,		1.0)); //wing
-		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-8,		18.0,	1,		1.0)); //engine
+		defaultCollisionPoints.add(new CollisionPoint	(5.5,	-16,	7.5,	0.4,	3.0, 1.0)); //wheel
+		defaultCollisionPoints.add(new CollisionPoint	(-5.5,	-16,	7.5,	0.4,	3.0, 1.0)); //wheel
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-9.0,	-49.0,	0.4,	1.0, 1.0)); //tail wheel
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-2.5,	21.0,	1,		1.0, 0.5)); //engine
+		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	-8,		9.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	-8,		-10.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(50.0,	-8,		9.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(50.0,	-8,		-10.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	12,		9.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(-50.0,	12,		-10.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(50.0,	12,		9.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(50.0,	12,		-10.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	9.0,	-49.0,	0.4,	1.0, 0.5)); //tail wheel
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	12,		 0,		0.4,	1.0, 0.5)); //tail wheel
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-8,		-10.0,	1,		1.0, 0.5)); //wing
+		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-8,		18.0,	1,		1.0, 0.5)); //engine
+		
+		defaultVolumeUnits = new ArrayList<VolumeUnit>();
+		for (int x = -6; x <= 6; x += 4)
+			for (int y = -8; y <= 8; y += 4)
+				for (int z = -30; z <= 20; z += 4)
+					defaultVolumeUnits.add(new VolumeUnit(x*scale, y*scale, z*scale));
 	}
 	
 	public EntityBiplane(World worldIn) {

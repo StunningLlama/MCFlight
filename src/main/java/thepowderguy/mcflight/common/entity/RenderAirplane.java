@@ -13,6 +13,7 @@ import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.biplane.ModelBiplane;
 import thepowderguy.mcflight.physics.CollisionPoint;
 import thepowderguy.mcflight.physics.ControlSurface;
+import thepowderguy.mcflight.physics.VolumeUnit;
 import thepowderguy.mcflight.util.Vec3;
 
 public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>{
@@ -49,6 +50,9 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		renderVector(zero, entity.thrust_vec, vertexbuffer, 255, 0, 255, vscale);
     		renderVector(zero, entity.drag_vec, vertexbuffer, 255, 0, 0, vscale);
     		//renderVector(zero, entity.mo, vertexbuffer, 0, 255, 255, 10.0);
+    		for (VolumeUnit vu: entity.volumeUnits) {
+    			renderVector (vu.getInterpolatedPosition(partialTicks), vu.getForce(partialTicks), vertexbuffer, 0, 255, 255, vscale);
+    		}
     		for (CollisionPoint i: entity.collisionPoints)
     			renderVector(i.getInterpolatedPosition(partialTicks), i.getForce(), vertexbuffer, 0, 0, 0, vscale);
     		for (ControlSurface i: entity.airfoilSections) {
@@ -63,6 +67,8 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		GL11.glBegin(GL11.GL_POINTS);
     		for (CollisionPoint i: entity.collisionPoints)
     			renderPoint(i.getInterpolatedPosition(partialTicks), 1.0f, 0.5f, 0);
+    		for (VolumeUnit vu: entity.volumeUnits)
+    			renderPoint(vu.getInterpolatedPosition(partialTicks), 1.0f, 0f, 1.0f);
     		GL11.glEnd();
     		//GlStateManager.depthMask(true);
     		GL11.glEnable(GL11.GL_LIGHTING);
