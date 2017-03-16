@@ -303,7 +303,7 @@ public abstract class EntityAirplane extends Entity {
 	*  disporportionate amount. Thus we have to reduce the impact that angular rotation has on the velocity of lifting surfaces on the airplane,
 	*  to do this we add a scalar value to the angular velocity.
 	*/
-	public static double angularVelocitySizeModifier = 0.5;
+	public static double angularVelocitySizeModifier = 0.25;
 	
 //	public EnumDyeColor FuselageColor;
 //	public EnumDyeColor WingColor;
@@ -509,8 +509,8 @@ public abstract class EntityAirplane extends Entity {
 			Vec3 inddrag_vec = Vec3.unitvector(cvel).mul(-1.0 * inducedDrag);
 			
 			Vec3 force = Vec3.add(lift_vec, inddrag_vec);
-			boolean inwater = this.isInWater(Vec3.add(posvec, tpos));
-			float waterdrag = (inwater? 10.0f:1.0f);
+			double inwater = this.isInWater(Vec3.add(posvec, tpos));
+			float waterdrag = ((inwater>-0.5)? 10.0f:1.0f);
 			tmpMotion.add(Vec3.mul(force, waterdrag * conversionconst / mass));
 			cs.setForce(force);
 			cs.setPosition(tpos);
@@ -528,9 +528,9 @@ public abstract class EntityAirplane extends Entity {
 		for (VolumeUnit vu: this.volumeUnits) {
 			Vec3 tpos = transform.transform(vu.getPosition());
 			vu.update(tpos);
-			Vec3 force = new Vec3(0.0, 0.0002, 0.0);
-			boolean inwater = this.isInWater(Vec3.add(posvec, tpos));
-			if (inwater) {
+			double inwater = this.isInWater(Vec3.add(posvec, tpos));
+			if (inwater > -0.5) {
+				Vec3 force = new Vec3(0.0, 0.001*inwater, 0.0);
 				Vec3 distaxis = Vec3.sub(tpos, Vec3.proj(tpos, angVelocity));
 				Vec3 cvel = Vec3.add(vel, Vec3.cross(Vec3.mul(angVelocity, Math.PI/180.0), distaxis).mul(angularVelocitySizeModifier));
 				if (angVelocity.magsq() == 0)
@@ -732,16 +732,39 @@ public abstract class EntityAirplane extends Entity {
 		vectorsInitialized = true;
 	}
 	
-	public boolean isInWater(Vec3 pos) {
+	public double isInWater(Vec3 pos) {
 		BlockPos bp = new BlockPos(pos.x, pos.y, pos.z);
 		IBlockState bs = world.getBlockState(bp);
 		Material m = bs.getMaterial();
 		if (m != Material.WATER && m != Material.LAVA)
-			return false;
-		float lvl = BlockLiquid.getLiquidHeightPercent(bs.getValue(BlockLiquid.LEVEL));
-		if ((pos.y - Math.floor(pos.y)) < (1.0-lvl))
-			return true;
-		return false;
+			return -1;
+		
+
+		BlockPos bp1 = new BlockPos(pos.x, pos.y+1, pos.z);
+		IBlockState bs1 = world.getBlockState(bp1);
+		Material m1 = bs1.getMaterial();
+		float lvl;
+		if (m1 == Material.WATER || m1 == Material.LAVA)
+		{
+			BlockPos bp2 = new BlockPos(pos.x, pos.y+2, pos.z);
+			IBlockState bs2 = world.getBlockState(bp2);
+			Material m2 = bs2.getMaterial();
+			if (m2 == Material.WATER || m2 == Material.LAVA)
+			{
+				lvl = 2.0f;
+			} else {
+			lvl = 2.0f - BlockLiquid.getLiquidHeightPercent(bs1.getValue(BlockLiquid.LEVEL));
+			}
+		} else {
+			lvl = 1.0f - BlockLiquid.getLiquidHeightPercent(bs.getValue(BlockLiquid.LEVEL));
+		}
+		
+		if ((pos.y - Math.floor(pos.y)) >= lvl)
+			return -1;
+		double finalvalue = lvl - (pos.y - Math.floor(pos.y));
+		if (finalvalue > 1.0)
+			return 1.0;
+		return finalvalue;
 	}
 	
 	public static double[] lift = {0, 0.0865682024, 0.173132549, 0.2596737611, 0.3461417137, 0.432440013, 0.5184105729, 0.6038181922, 0.6883351314, 0.7715256899, 0.8528307828, 0.9315525179, 1.0068387728, 1.0776677716, 1.1428326622, 1.2009260928, 1.2503247895, 1.2891741327, 1.3153727343, 1.3265570149, 1.3200857803, 1.2930247988, 1.2421313779, 1.1638389418, 1.0542416076, 0.9197011011, 0.8668813789, 0.8447997863, 0.8393419844, 0.8485792446, 0.8660254038, 0.8829475928, 0.8987940463, 0.9135454576, 0.9271838546, 0.9396926208, 0.9510565163, 0.9612616959, 0.9702957263, 0.9781476007, 0.984807753, 0.9902680687, 0.9945218954, 0.9975640503, 0.999390827, 1, 0.999390827, 0.9975640503, 0.9945218954, 0.9902680687, 0.984807753, 0.9781476007, 0.9702957263, 0.961261696, 0.9510565163, 0.9396926208, 0.9271838546, 0.9135454577, 0.8987940463, 0.8829475929, 0.8660254038, 0.8480480962, 0.8290375726, 0.8090169944, 0.7880107536, 0.7660444432, 0.7431448255, 0.7193398004, 0.6946583705, 0.6691306064, 0.6427876097, 0.6156614754, 0.5877852524, 0.5591929035, 0.5299192643, 0.5000000001, 0.4694715629, 0.4383711469, 0.4067366431, 0.3746065935, 0.3420201434, 0.3090169945, 0.2756373559, 0.2419218957, 0.2079116909, 0.1736481778, 0.139173101, 0.1045284634, 0.0697564738, 0.0348994968, 0};

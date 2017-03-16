@@ -16,6 +16,7 @@ import net.minecraftforge.fml.client.registry.ClientRegistry;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.InputEvent;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
+import thepowderguy.mcflight.util.Vec3;
 
 public class InterfaceKeyHandler {
 	public boolean debug_toggled = false;
@@ -79,13 +80,48 @@ public class InterfaceKeyHandler {
 	public InterfaceKeyHandler() {
 
 	}
+	public double isInWater(Vec3 pos) {
+		BlockPos bp = new BlockPos(pos.x, pos.y, pos.z);
+		IBlockState bs = Minecraft.getMinecraft().world.getBlockState(bp);
+		Material m = bs.getMaterial();
+		if (m != Material.WATER && m != Material.LAVA)
+			return -1;
+		
+
+		BlockPos bp1 = new BlockPos(pos.x, pos.y+1, pos.z);
+		IBlockState bs1 = Minecraft.getMinecraft().world.getBlockState(bp1);
+		Material m1 = bs1.getMaterial();
+		float lvl;
+		if (m1 == Material.WATER || m1 == Material.LAVA)
+		{
+			BlockPos bp2 = new BlockPos(pos.x, pos.y+2, pos.z);
+			IBlockState bs2 = Minecraft.getMinecraft().world.getBlockState(bp2);
+			Material m2 = bs2.getMaterial();
+			if (m2 == Material.WATER || m2 == Material.LAVA)
+			{
+				lvl = 2.0f;
+			} else {
+			lvl = 2.0f - BlockLiquid.getLiquidHeightPercent(bs1.getValue(BlockLiquid.LEVEL));
+			}
+		} else {
+			lvl = 1.0f - BlockLiquid.getLiquidHeightPercent(bs.getValue(BlockLiquid.LEVEL));
+		}
+		if ((pos.y - Math.floor(pos.y)) >= lvl)
+			return -1;
+		double finalvalue = lvl - (pos.y - Math.floor(pos.y));
+		if (finalvalue > 1.0)
+			return 1.0;
+		return finalvalue;
+	}
 	@SubscribeEvent
 	public void onKeyInput(InputEvent.KeyInputEvent event) {
 		if (toggleDebug.isPressed()) {
 			debug_toggled = !debug_toggled;
 
 			EntityPlayer p = Minecraft.getMinecraft().player;
-			p.sendMessage(new TextComponentString("h1"));
+			double inwater = isInWater(new Vec3(p.posX, p.posY, p.posZ));
+			p.sendMessage(new TextComponentString("water " + inwater));
+			/*p.sendMessage(new TextComponentString("h1"));
 			BlockPos bp = new BlockPos(p.posX, p.posY, p.posZ);
 			IBlockState bs = p.world.getBlockState(bp);
 			Material m = bs.getMaterial();
@@ -99,7 +135,7 @@ public class InterfaceKeyHandler {
 				{
 					p.sendMessage(new TextComponentString("asd"));
 				}
-			}
+			}*/
 		}
 		if (toggleVector.isPressed()) {
 			vectordrawing_toggled = !vectordrawing_toggled;

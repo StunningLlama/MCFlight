@@ -66,10 +66,16 @@ public class EntityBiplane extends EntityAirplane {
 		defaultCollisionPoints.add(new CollisionPoint	(0.0,	-8,		18.0,	1,		1.0, 0.5)); //engine
 		
 		defaultVolumeUnits = new ArrayList<VolumeUnit>();
-		for (int x = -6; x <= 6; x += 4)
-			for (int y = -8; y <= 8; y += 4)
-				for (int z = -30; z <= 20; z += 4)
+		for (int x = -6; x <= 6; x += 6)
+			for (int y = -8; y <= 8; y += 8)
+				for (int z = -30; z <= 20; z += 8)
 					defaultVolumeUnits.add(new VolumeUnit(x*scale, y*scale, z*scale));
+		defaultVolumeUnits.add(new VolumeUnit	(-50.0*scale,	-8*scale,		9.0*scale)); //wing
+		defaultVolumeUnits.add(new VolumeUnit	(-50.0*scale,	-8*scale,		-10.0*scale)); //wing
+		defaultVolumeUnits.add(new VolumeUnit	(50.0*scale,	-8*scale,		9.0*scale)); //wing
+		defaultVolumeUnits.add(new VolumeUnit	(50.0*scale,	-8*scale,		-10.0*scale)); //wing
+		defaultVolumeUnits.add(new VolumeUnit	(0.0*scale,	9.0*scale,	-49.0*scale)); //tail wheel
+		defaultVolumeUnits.add(new VolumeUnit	(0.0*scale,	12*scale,		 0*scale)); //tail wheel
 	}
 	
 	public EntityBiplane(World worldIn) {
