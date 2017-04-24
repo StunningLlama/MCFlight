@@ -296,6 +296,8 @@ public abstract class EntityAirplane extends Entity {
 	protected ControlSurface[] airfoilSections;
 	protected VolumeUnit[] volumeUnits;
 	
+	public static final boolean propTorque = false;
+	
 	public static float fuelCapacity;
 	
 	/* Ideally this should be 1.0 to make the simulation completely accurate, but because minecraft's chunk loading is so slow right now, the ratio
@@ -381,7 +383,7 @@ public abstract class EntityAirplane extends Entity {
 	// * Realistic friction DONE!
 	// * More camera types DONE!
 	// * Floating planes
-	// * 
+	// * Fix Propeller Torque...
 	
 	// Bugs:
 	// It is hard to get off airplanes sometimes
@@ -510,7 +512,7 @@ public abstract class EntityAirplane extends Entity {
 			
 			Vec3 force = Vec3.add(lift_vec, inddrag_vec);
 			double inwater = this.isInWater(Vec3.add(posvec, tpos));
-			float waterdrag = ((inwater>-0.5)? 10.0f:1.0f);
+			float waterdrag = ((inwater>-0.5)? 3.0f:1.0f);
 			tmpMotion.add(Vec3.mul(force, waterdrag * conversionconst / mass));
 			cs.setForce(force);
 			cs.setPosition(tpos);
@@ -524,6 +526,9 @@ public abstract class EntityAirplane extends Entity {
 				//mo.set(cvel);
 			}
 		}
+		
+		if (propTorque)
+			angVelDiff.add(Vec3.mul(thrust_vec, throttle * -0.01));
 
 		for (VolumeUnit vu: this.volumeUnits) {
 			Vec3 tpos = transform.transform(vu.getPosition());
@@ -532,7 +537,7 @@ public abstract class EntityAirplane extends Entity {
 			if (inwater > -0.5) {
 				Vec3 force = new Vec3(0.0, 0.001*inwater, 0.0);
 				Vec3 distaxis = Vec3.sub(tpos, Vec3.proj(tpos, angVelocity));
-				Vec3 cvel = Vec3.add(vel, Vec3.cross(Vec3.mul(angVelocity, Math.PI/180.0), distaxis).mul(angularVelocitySizeModifier));
+				Vec3 cvel = Vec3.add(vel, Vec3.cross(Vec3.mul(angVelocity, Math.PI/180.0), distaxis).mul(angularVelocitySizeModifier*8.0));
 				if (angVelocity.magsq() == 0)
 					cvel.set(vel);
 				force.add(Vec3.mul(cvel, -0.001));
@@ -585,17 +590,27 @@ public abstract class EntityAirplane extends Entity {
 				this.onGround = true;
 				collisionPoints[i].isCollided = true;
 				Vec3 normal = Vec3.mul(collisionVec, 128.0*collisionPoints[i].normalCoeff);
-				angmotiondiff.add(Vec3.cross(points[i], normal).mul(this.torqueMultiplier));
-				motiondiff.add(Vec3.mul(normal, conversionconst / mass));
-				
 				double brake_multiplier = brakedown? collisionPoints[i].brakeMul: 1.0;
 				totalnormalforce.add(collisionVec);
-				Vec3 fcDirection = Vec3.cross(collisionVec, Vec3.cross(collisionVec, motion)).unitvector();
+				
+
+				Vec3 distaxis = Vec3.sub(points[i], Vec3.proj(points[i], angVelocity));
+				Vec3 cvel = Vec3.add(vel, Vec3.cross(Vec3.mul(angVelocity, Math.PI/180.0), distaxis).mul(1.0));
+				if (angVelocity.magsq() == 0)
+					cvel.set(vel);
+				
+				
+				Vec3 fcDirection = Vec3.cross(collisionVec, Vec3.cross(collisionVec, cvel)).unitvector();
 				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction*(2.0*normal.mag()/0.025);
 				Vec3 friction = new Vec3();
 				friction = fcDirection.mul(fcMag);
+
+				motiondiff.add(Vec3.mul(normal, conversionconst / mass));
+				angmotiondiff.add(Vec3.cross(points[i], normal).mul(this.torqueMultiplier));
 				frictionmotiondiff.add(friction);
-				collisionPoints[i].setForce(Vec3.add(fcDirection, normal));
+				angmotiondiff.add(Vec3.cross(points[i], friction).mul(this.torqueMultiplier*(propTorque? 5.0 : 1.0)));
+				
+				collisionPoints[i].setForce(Vec3.add(friction, normal));
 			} else {
 				collisionPoints[i].isCollided = false;
 				collisionPoints[i].setForce(new Vec3());

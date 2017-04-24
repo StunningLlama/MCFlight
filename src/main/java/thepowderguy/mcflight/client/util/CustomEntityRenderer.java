@@ -1384,7 +1384,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
 
         if (entity.posY + (double)entity.getEyeHeight() < 128.0D)
         {
-            this.renderCloudsCheck(renderglobal, partialTicks, pass);
+            this.renderCloudsCheck(renderglobal, partialTicks, pass, d0, d1, d2);
         }
 
         this.mc.mcProfiler.endStartSection("prepareterrain");
@@ -1502,7 +1502,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
         if (entity.posY + (double)entity.getEyeHeight() >= 128.0D)
         {
             this.mc.mcProfiler.endStartSection("aboveClouds");
-            this.renderCloudsCheck(renderglobal, partialTicks, pass);
+            this.renderCloudsCheck(renderglobal, partialTicks, pass, d0, d1, d2);
         }
 
         this.mc.mcProfiler.endStartSection("forge_render_last");
@@ -1517,7 +1517,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
         }
     }
 
-    private void renderCloudsCheck(RenderGlobal renderGlobalIn, float partialTicks, int pass)
+    private void renderCloudsCheck(RenderGlobal renderGlobalIn, float partialTicks, int pass, double p_180437_4_, double p_180437_6_, double p_180437_8_)
     {
         if (this.mc.gameSettings.shouldRenderClouds() != 0)
         {
@@ -1528,7 +1528,7 @@ public class CustomEntityRenderer extends EntityRenderer implements IResourceMan
             GlStateManager.matrixMode(5888);
             GlStateManager.pushMatrix();
             this.setupFog(0, partialTicks);
-            renderGlobalIn.renderClouds(partialTicks, pass);
+            renderGlobalIn.renderClouds(partialTicks, pass, p_180437_4_, p_180437_6_, p_180437_8_);
             GlStateManager.disableFog();
             GlStateManager.popMatrix();
             GlStateManager.matrixMode(5889);
