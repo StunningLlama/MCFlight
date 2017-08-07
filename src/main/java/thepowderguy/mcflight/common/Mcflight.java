@@ -1,6 +1,7 @@
 package thepowderguy.mcflight.common;
 
 import java.lang.reflect.Field;
+
 import java.lang.reflect.Modifier;
 import java.util.Map;
 
@@ -19,11 +20,13 @@ import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
 import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.event.RegistryEvent;
 import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.IFluidBlock;
@@ -35,6 +38,7 @@ import net.minecraftforge.fml.common.event.FMLInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPostInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLPreInitializationEvent;
 import net.minecraftforge.fml.common.event.FMLServerStartingEvent;
+import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.network.NetworkRegistry;
 import net.minecraftforge.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import net.minecraftforge.fml.common.registry.EntityRegistry;
@@ -62,7 +66,7 @@ import thepowderguy.mcflight.common.packet.AirplaneStatePacket;
 import thepowderguy.mcflight.common.packet.AirplaneUpdatePacket;
 import thepowderguy.mcflight.common.world.BlockOil;
 import thepowderguy.mcflight.common.world.Oil;
-
+@Mod.EventBusSubscriber
 @Mod(modid = "mcflight", name = "Minecraft Flight Simulator", version = "0.1")
 public class Mcflight {
 	
@@ -122,15 +126,9 @@ public class Mcflight {
 	public static MCFlightCommonProxy proxy;
 	
 	
-	@EventHandler
-	public void preInit(FMLPreInitializationEvent event) {
-		instance = this;
-		network = NetworkRegistry.INSTANCE.newSimpleChannel("McflightPos");
-		network.registerMessage(AirplanePacketListener.class, AirplaneUpdatePacket.class, 0, Side.SERVER);
-		network2 = NetworkRegistry.INSTANCE.newSimpleChannel("McflightState");
-		network2.registerMessage(AirplaneStateListener.class, AirplaneStatePacket.class, 0, Side.SERVER);
-		NetworkRegistry.INSTANCE.registerGuiHandler(this, guihandler);
-
+	@SubscribeEvent
+	public void registerItems(RegistryEvent.Register<Item> event) {
+		System.out.println("HEYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY");
 		item_flap = new Flap().setUnlocalizedName("flap").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_wing = new Wing().setUnlocalizedName("wing").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		item_doublewing = new DoubleWing().setUnlocalizedName("doublewing").setCreativeTab(tab_aircraft).setMaxStackSize(1);
@@ -144,8 +142,57 @@ public class Mcflight {
 		item_airplane_biplane = new ItemBiplane().setUnlocalizedName("biplane").setCreativeTab(tab_aircraft).setMaxStackSize(1);
 		
 		item_paint = new AircraftPaint().setUnlocalizedName("aircraftpaint").setCreativeTab(tab_aircraft).setMaxStackSize(1);
+		
+		
+		event.getRegistry().register(item_flap.setRegistryName("flap"));
+		event.getRegistry().register(item_wing.setRegistryName("wing")			);
+		event.getRegistry().register(item_doublewing.setRegistryName("doublewing")		);
+		event.getRegistry().register(item_propeller.setRegistryName("propeller")		);
+		event.getRegistry().register(item_jetengine.setRegistryName("jetengine")		);
+		event.getRegistry().register(item_bigfuselage.setRegistryName("bigfuselage")		);
+		event.getRegistry().register(item_smallfuselage.setRegistryName("smallfuselage")	);
+		event.getRegistry().register(item_tail.setRegistryName("tail")			);
+		event.getRegistry().register(item_kerosene.setRegistryName("kerosene")			);
+		
+		event.getRegistry().register(item_airplane_biplane.setRegistryName("biplane"));
+		event.getRegistry().register(item_paint.setRegistryName("aircraftpaint"));
+	}
+
+	@SubscribeEvent
+	public void registerBlocks(RegistryEvent.Register<Block> event) {
+
+		fluid_oil = new Oil("oil", new ResourceLocation("mcflight:blocks/oilstill"), new ResourceLocation("mcflight:blocks/oilflowing"));
+		FluidRegistry.registerFluid(fluid_oil);
+		FluidRegistry.addBucketForFluid(fluid_oil);
+		block_oil = new BlockOil(fluid_oil, Material.WATER).setCreativeTab(tab_aircraft).setUnlocalizedName("oil").setRegistryName(new ResourceLocation("mcflight:oil_block"));
+	
+		event.getRegistry().register(block_oil);//, new ResourceLocation("mcflight:oil_block")
+		proxy.RegisterFluidModel((IFluidBlock)block_oil);
+	}
+
+	@SubscribeEvent
+	public void registerSounds(RegistryEvent.Register<SoundEvent> event) {
+
+		ResourceLocation soundloc = new ResourceLocation("mcflight", "airplane.biplane.engine");
+		sound_engine = new SoundEvent(soundloc);
+		sound_engine.setRegistryName(soundloc);
+		event.getRegistry().register(sound_engine);
+		
+	}
+	
+	@EventHandler
+	public void preInit(FMLPreInitializationEvent event) {
+		instance = this;
+		network = NetworkRegistry.INSTANCE.newSimpleChannel("McflightPos");
+		network.registerMessage(AirplanePacketListener.class, AirplaneUpdatePacket.class, 0, Side.SERVER);
+		network2 = NetworkRegistry.INSTANCE.newSimpleChannel("McflightState");
+		network2.registerMessage(AirplaneStateListener.class, AirplaneStatePacket.class, 0, Side.SERVER);
+		NetworkRegistry.INSTANCE.registerGuiHandler(this, guihandler);
+
 		/******* uncomment to enable oil test **********/
 
+		
+		
 		//Blocks.WATER
        // GameRegistry.register((new OilFlowing(Material.WATER)).setHardness(100.0F).setLightOpacity(3).setUnlocalizedName("water"), new ResourceLocation("mcflight:oil"));
        // registerBlock(9, "water", (new BlockStaticLiquid(Material.WATER)).setHardness(100.0F).setLightOpacity(3).setUnlocalizedName("water").disableStats());
@@ -155,32 +202,13 @@ public class Mcflight {
 		//item_airplane_boeing_737 = new ItemBoeing737().setUnlocalizedName("boeing_737");
 		//item_airplane_douglas_dc3 = new ItemDouglasDC3().setUnlocalizedName("douglas_dc3");
 		
-		GameRegistry.register(item_flap.setRegistryName("flap"));
-		GameRegistry.register(item_wing.setRegistryName("wing")			);
-		GameRegistry.register(item_doublewing.setRegistryName("doublewing")		);
-		GameRegistry.register(item_propeller.setRegistryName("propeller")		);
-		GameRegistry.register(item_jetengine.setRegistryName("jetengine")		);
-		GameRegistry.register(item_bigfuselage.setRegistryName("bigfuselage")		);
-		GameRegistry.register(item_smallfuselage.setRegistryName("smallfuselage")	);
-		GameRegistry.register(item_tail.setRegistryName("tail")			);
-		GameRegistry.register(item_kerosene.setRegistryName("kerosene")			);
-		
-		GameRegistry.register(item_airplane_biplane.setRegistryName("biplane"));
-		GameRegistry.register(item_paint.setRegistryName("aircraftpaint"));
 		//GameRegistry.register(block_oil.setRegistryName("oil"));
         
-		fluid_oil = new Oil("oil", new ResourceLocation("mcflight:blocks/oilstill"), new ResourceLocation("mcflight:blocks/oilflowing"));
-		FluidRegistry.registerFluid(fluid_oil);
-		FluidRegistry.addBucketForFluid(fluid_oil);
-		block_oil = new BlockOil(fluid_oil, Material.WATER).setCreativeTab(tab_aircraft).setUnlocalizedName("oil");
-		GameRegistry.register(block_oil, new ResourceLocation("mcflight:oil_block"));
-		proxy.RegisterFluidModel((IFluidBlock)block_oil);
 
 		proxy.RegisterRenderEntities();
 
-		ResourceLocation soundloc = new ResourceLocation("mcflight", "airplane.biplane.engine");
-		sound_engine = new SoundEvent(soundloc);
-		GameRegistry.register(sound_engine, soundloc);
+		
+		MinecraftForge.EVENT_BUS.register(this);
 	}
 
 	@EventHandler
@@ -193,31 +221,33 @@ public class Mcflight {
 	
 	@EventHandler
 	public void init(FMLInitializationEvent event) {
-		GameRegistry.addRecipe(i(item_flap), "   ", "pii", "   ",
+		ResourceLocation group = new ResourceLocation("mcflight", "airplanetab");
+		
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_flap), "   ", "pii", "   ",
 				'p', i(Blocks.PISTON), 'i', i(Items.IRON_INGOT));
-		GameRegistry.addRecipe(i(item_wing), " f ", "bbb", "   ",
+		GameRegistry.addShapedRecipe(r("r1"), group, ii(item_wing), " f ", "bbb", "   ",
 				'f', i(item_flap), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addShapelessRecipe(i(item_doublewing), 
+		GameRegistry.addShapelessRecipe(r("r0"), group, ii(item_doublewing), 
 				i(item_wing), i(item_wing));
-		GameRegistry.addRecipe(i(item_propeller), "iii", "ipi", "iii",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_propeller), "iii", "ipi", "iii",
 				'p', i(Blocks.PISTON), 'i', i(Items.IRON_INGOT));
-		GameRegistry.addRecipe(i(item_jetengine), "ipi", "ifi", "i i",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_jetengine), "ipi", "ifi", "i i",
 				'p', i(item_propeller), 'i', i(Items.IRON_INGOT), 'f', i(Blocks.FURNACE));
-		GameRegistry.addRecipe(i(item_bigfuselage), "bgb", "b b", "bbb",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_bigfuselage), "bgb", "b b", "bbb",
 				'g', i(Blocks.GLASS), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addRecipe(i(item_smallfuselage), "   ", "bgb", "bbb",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_smallfuselage), "   ", "bgb", "bbb",
 				'g', i(Blocks.GLASS), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addRecipe(i(item_tail), " b ", "fbf", " f ",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_tail), " b ", "fbf", " f ",
 				'f', i(item_flap), 'b', i(Blocks.IRON_BLOCK));
 		
-		GameRegistry.addRecipe(i(item_airplane_biplane), " p ", "dfd", " t ",
+		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_airplane_biplane), " p ", "dfd", " t ",
 				'p', i(item_propeller), 'd', i(item_doublewing), 'f', i(item_smallfuselage), 't', i(item_tail));
-		GameRegistry.addSmelting((UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)), i(item_kerosene), 0f);
+		GameRegistry.addSmelting((UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)), ii(item_kerosene), 0f);
 		ForgeModContainer.getInstance().universalBucket.setCreativeTab(tab_aircraft); // this is kind of not good, prehaps forge will implement a better method to do this
 		for (int i = 0; i < 16; ++i)
         {
-           GameRegistry.addRecipe(new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
-        }//
+           GameRegistry.addShapedRecipe(r("r0"), group, new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
+        }
         //ItemColors.
 		proxy.RegisterRenderItems();
 		EntityRegistry.registerModEntity(new ResourceLocation("mcflight:biplane"), EntityBiplane.class, "biplane", 0, this, 64, 20, true);
@@ -267,14 +297,27 @@ public class Mcflight {
 		
 	}
 	
-	public static ItemStack i(Block b)
+	public static Ingredient i(Block b)
+	{
+		return Ingredient.func_193369_a(new ItemStack(b));
+	}
+
+	public static ItemStack ii(Block b)
 	{
 		return new ItemStack(b);
 	}
 	
-	public static ItemStack i(Item i)
+	public static Ingredient i(Item i)
 	{
-		return new ItemStack(i);
+		return Ingredient.func_193367_a(i);
+	}
+
+	public static ItemStack ii(Item b)
+	{
+		return new ItemStack(b);
+	}
+	public static ResourceLocation r(String name) {
+		return new ResourceLocation("mcflight", name);
 	}
 	
 	private void registerFluidModel(IFluidBlock fluidBlock) {

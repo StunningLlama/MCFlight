@@ -3,9 +3,9 @@ package thepowderguy.mcflight.common.entity;
 import org.lwjgl.opengl.GL11;
 
 import net.minecraft.client.model.ModelBase;
+import net.minecraft.client.renderer.BufferBuilder;
 import net.minecraft.client.renderer.GlStateManager;
 import net.minecraft.client.renderer.Tessellator;
-import net.minecraft.client.renderer.VertexBuffer;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
@@ -43,7 +43,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     		GL11.glDisable(GL11.GL_LIGHTING);
     		//GlStateManager.depthMask(false);
     		Tessellator tessellator = Tessellator.getInstance();
-    		VertexBuffer vertexbuffer = tessellator.getBuffer();
+    		BufferBuilder vertexbuffer = tessellator.getBuffer();
     		GL11.glLineWidth(4.0F);
     		vertexbuffer.begin(1, DefaultVertexFormats.POSITION_COLOR);
     		renderVector(zero, entity.gravity_vec, vertexbuffer, 255, 255, 0, vscale);
@@ -111,7 +111,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     	GL11.glVertex3f((float)vec.x, (float)vec.y, (float)vec.z);
     	GlStateManager.color(1, 1, 1);
     }
-    private void renderVector(Vec3 start, Vec3 vec, VertexBuffer vertexbuffer, int r, int g, int b, double scale) {
+    private void renderVector(Vec3 start, Vec3 vec, BufferBuilder vertexbuffer, int r, int g, int b, double scale) {
         vertexbuffer.pos(start.x, start.y, start.z).color(r, g, b, 255).endVertex();
         vertexbuffer.pos((start.x+vec.x*scale), (start.y+vec.y*scale), (start.z+vec.z*scale)).color(r, g, b, 255).endVertex();
     }
