@@ -10,6 +10,7 @@ import javax.annotation.Nullable;
 import org.lwjgl.input.Keyboard;
 
 import net.minecraft.block.BlockLiquid;
+import net.minecraft.block.SoundType;
 import net.minecraft.block.material.Material;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
@@ -599,9 +600,9 @@ public abstract class EntityAirplane extends Entity {
 				if (angVelocity.magsq() == 0)
 					cvel.set(vel);
 				
-				
+				double materialcoeff = getmaterialfrictioncoeff(posX+points[i].x, posY+points[i].y, posZ+points[i].z);
 				Vec3 fcDirection = Vec3.cross(collisionVec, Vec3.cross(collisionVec, cvel)).unitvector();
-				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction*(2.0*normal.mag()/0.025);
+				double fcMag = brake_multiplier*friction_const*collisionPoints[i].friction*(2.0*normal.mag()/0.025)*materialcoeff;
 				Vec3 friction = new Vec3();
 				friction = fcDirection.mul(fcMag);
 
@@ -745,6 +746,26 @@ public abstract class EntityAirplane extends Entity {
 			prevRotationRoll += -360;
 		
 		vectorsInitialized = true;
+	}
+	public double getmaterialfrictioncoeff(double x, double y, double z) {
+		BlockPos pos = new BlockPos(x, y, z);
+		IBlockState state = world.getBlockState(pos);
+		SoundType sound = state.getBlock().getSoundType(state, world, pos, getLowestRidingEntity());
+		double friction = 1.0;
+		if (sound == SoundType.WOOD  ) friction = 1.5;
+		else if (sound == SoundType.GROUND) friction = 4.0; //?????
+		else if (sound == SoundType.PLANT ) friction = 5.0;
+		else if (sound == SoundType.STONE ) friction = 1.0;
+		else if (sound == SoundType.METAL ) friction = 0.75;
+		else if (sound == SoundType.GLASS ) friction = 1.0;
+		else if (sound == SoundType.CLOTH ) friction = 5.0;
+		else if (sound == SoundType.SAND  ) friction = 8.0;
+		else if (sound == SoundType.SNOW  ) friction = 3.0;
+		else if (sound == SoundType.LADDER) friction = 1.0;
+		else if (sound == SoundType.ANVIL ) friction = 1.0;
+		else if (sound == SoundType.SLIME ) friction = 6.0;
+		return friction;
+//		state.getMaterial().
 	}
 	
 	public double isInWater(Vec3 pos) {
