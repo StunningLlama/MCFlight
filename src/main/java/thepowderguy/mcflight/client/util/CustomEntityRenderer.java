@@ -94,7 +94,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
 
-@SideOnly(Side.CLIENT)
+//@SideOnly(Side.CLIENT)
 public class CustomEntityRenderer extends EntityRenderer implements IResourceManagerReloadListener
 {
     private static final Logger LOGGER = LogManager.getLogger();

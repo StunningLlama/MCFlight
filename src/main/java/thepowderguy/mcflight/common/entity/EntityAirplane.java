@@ -41,6 +41,7 @@ import net.minecraftforge.fml.relauncher.Side;
 import net.minecraftforge.fml.relauncher.SideOnly;
 import net.minecraftforge.items.ItemHandlerHelper;
 import thepowderguy.mcflight.client.InterfaceKeyHandler;
+import thepowderguy.mcflight.client.MCFlightClientProxy;
 import thepowderguy.mcflight.client.RenderAirplaneInterface;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.item.AircraftPaint;
@@ -55,12 +56,11 @@ import thepowderguy.mcflight.util.Vec3;
 
 public abstract class EntityAirplane extends Entity {
 	
-	public static InterfaceKeyHandler input;
+	public InterfaceKeyHandler input;
 	public InventoryBasic inv;
-//	public double drag;
 	public static boolean useMouseInput = true;
 	private EntityAirplaneCamera cam;
-	Minecraft minecraft;
+//	Minecraft minecraft;
 	
 	public EntityAirplane(World worldIn) {
 		super(worldIn);
@@ -100,11 +100,12 @@ public abstract class EntityAirplane extends Entity {
 		this.setFuselageColor(EnumDyeColor.SILVER);
 		this.setWingColor(EnumDyeColor.SILVER);
 		this.setSize(2.0f, 2.0f);
-		minecraft = Minecraft.getMinecraft();
-		
 		inv = new InventoryBasic("ASDF", false, 17);
-		if (clientSide())
+		if (clientSide()) {
+//			minecraft = Minecraft.getMinecraft();
 			cam = new EntityAirplaneCamera(world, this);
+			input = MCFlightClientProxy.keyhandler;
+		}
 		
 		this.airfoilSections = new ControlSurface[defaultAirfoilSections.size()];
 		this.collisionPoints = new CollisionPoint[defaultCollisionPoints.size()];
@@ -352,7 +353,7 @@ public abstract class EntityAirplane extends Entity {
 	
 	//packet update
 	@Override
-	@SideOnly(Side.CLIENT)
+//	@SideOnly(Side.CLIENT)
 	public void setPositionAndRotationDirect(double x, double y, double z,
 			float yaw, float pitch, int somethinglol, boolean p_180426_10_)
 	{
@@ -464,7 +465,7 @@ public abstract class EntityAirplane extends Entity {
 
 		//Drag
 		//bodyDragUp is basically the same thing as lift induced drag
-		double bodyDragFwd = -1.0 * velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && input.brake.isKeyDown() ? 1.5 : 1.0);
+			double bodyDragFwd = -1.0 * velocity_sq * drag_const * dragMul_forward * Vec3.cosTheta(vel, vfwd) * (clientSide() && input.brake.isKeyDown() ? 1.5 : 1.0);
 		double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways * Vec3.sinTheta(vel, vfwd);
 		Vec3 dirvec = Vec3.cross(vfwd, Vec3.cross(vfwd, vel)).unitvector();
 		//double bodyDragSideways = velocity_sq * drag_const * dragMul_sideways *Vec3.cosTheta(vel, vside);
@@ -485,9 +486,6 @@ public abstract class EntityAirplane extends Entity {
 		double mag_lift = 0f;
 		double mag_inddrag = 0f;
 		double angleOfAttackWing = 0f;
-
-		if (Keyboard.isKeyDown(Keyboard.KEY_C))
-			angVelocity = new Vec3(0.0, 5.0, 0.0);
 
 		gravity_vec = new Vec3(0.0, -gravity_const*mass, 0.0);
 		tmpMotion.add(Vec3.mul(gravity_vec, conversionconst / mass));
@@ -584,7 +582,7 @@ public abstract class EntityAirplane extends Entity {
 		Vec3 angmotiondiff = new Vec3();
 		totalnormalforce = new Vec3();
 
-		boolean brakedown = (clientSide() && input.brake.isKeyDown());
+		boolean brakedown =	(clientSide() && input.brake.isKeyDown());
 		for (int i = 0; i < points.length; i++) {
 			Vec3 collisionVec = (getCollisionVector(posX+points[i].x, posY+points[i].y, posZ+points[i].z, this.getEntityWorld()));
 			if (collisionVec != null) {
@@ -719,7 +717,7 @@ public abstract class EntityAirplane extends Entity {
 			motionZ = tmpZZ*Math.abs(dotp);
 		}
 
-		if (clientSide() && minecraft.player.getRidingEntity() == this) {
+		if (clientSide() && Minecraft.getMinecraft().player.getRidingEntity() == this) {
 			double accel = Math.sqrt(
 					(motionX-prevMotionX)*(motionX-prevMotionX)+
 					(motionY-prevMotionY+gravity_const)*(motionY-prevMotionY+gravity_const)+
@@ -875,7 +873,7 @@ public abstract class EntityAirplane extends Entity {
 		forceAlierons = 0.0;
 		forceRudder = 0.0;
 		
-		if (clientSide() && minecraft.player.getRidingEntity() == this) {
+		if (clientSide() && Minecraft.getMinecraft().player.getRidingEntity() == this) {
 			
 			if (input.throttle_up.isKeyDown())
 				throttle = clamp(0, throttle + 0.025, 1);
@@ -913,7 +911,6 @@ public abstract class EntityAirplane extends Entity {
 				
 			}
 		}
-		
 	}
 	
 	@Nullable
@@ -968,7 +965,7 @@ public abstract class EntityAirplane extends Entity {
            	}
         }
         if (clientSide())
-        	this.cam.setDead();
+        	;//*%       	this.cam.setDead();
     }
    
 	@Override
@@ -1177,44 +1174,10 @@ public abstract class EntityAirplane extends Entity {
 	protected void addPassenger(Entity passenger)
 	{
 		super.addPassenger(passenger);
-		if (passenger == Minecraft.getMinecraft().player) {
+		if (passenger == Minecraft.getMinecraft().player && clientSide()) {
 		//	Minecraft.getMinecraft().setRenderViewEntity(this.cam);
 			if (reloadChunks) {
-				try {
-					RenderGlobal r = Minecraft.getMinecraft().renderGlobal;
-					Minecraft mc = Minecraft.getMinecraft();
-
-					Field f = RenderGlobal.class.getDeclaredField("viewFrustum");
-					f.setAccessible(true);
-					Field fac;
-					fac = RenderGlobal.class.getDeclaredField("renderChunkFactory");
-					fac.setAccessible(true);
-					IRenderChunkFactory factory = (IRenderChunkFactory) fac.get(r);
-					ViewFrustum frustum = new ViewFrustum(mc.world, mc.gameSettings.renderDistanceChunks, r, factory);
-					f.set(r, frustum);
-					if (mc.world != null)
-					{
-						Entity entity = mc.getRenderViewEntity();
-
-						if (entity != null)
-						{
-							frustum.updateChunkPositions(entity.posX, entity.posZ);
-						}
-					}
-
-				} catch (NoSuchFieldException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (SecurityException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalArgumentException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				} catch (IllegalAccessException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+				MCFlightClientProxy.reloadChunks();
 			}
 		}
     }

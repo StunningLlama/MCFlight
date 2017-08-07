@@ -1,15 +1,24 @@
 package thepowderguy.mcflight.client;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.Map;
+
 import net.minecraft.block.Block;
 import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.ItemMeshDefinition;
+import net.minecraft.client.renderer.RenderGlobal;
+import net.minecraft.client.renderer.ViewFrustum;
 import net.minecraft.client.renderer.block.model.ModelBakery;
 import net.minecraft.client.renderer.block.model.ModelResourceLocation;
 import net.minecraft.client.renderer.block.statemap.StateMapperBase;
+import net.minecraft.client.renderer.chunk.IRenderChunkFactory;
 import net.minecraft.client.renderer.color.IItemColor;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
+import net.minecraft.client.renderer.entity.RenderPlayer;
+import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.model.ModelLoader;
@@ -18,6 +27,9 @@ import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.client.registry.IRenderFactory;
 import net.minecraftforge.fml.client.registry.RenderingRegistry;
 import net.minecraftforge.fml.common.FMLCommonHandler;
+import net.minecraftforge.fml.relauncher.Side;
+import thepowderguy.mcflight.client.util.CustomEntityRenderer;
+import thepowderguy.mcflight.client.util.CustomRenderPlayer;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.EntityAirplane;
@@ -27,6 +39,44 @@ import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
 import thepowderguy.mcflight.common.item.AircraftPaint;
 
 public class MCFlightClientProxy extends MCFlightCommonProxy {
+
+	public static InterfaceKeyHandler keyhandler = new InterfaceKeyHandler();
+	
+	public void injectStuff(Side side) {
+		if (side != Side.CLIENT)
+			return;
+		Minecraft.getMinecraft().entityRenderer = new CustomEntityRenderer(Minecraft.getMinecraft(), Minecraft.getMinecraft().getResourceManager());
+		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
+		try {
+			Field renderPlayerField = RenderManager.class.getDeclaredField("playerRenderer");
+			renderPlayerField.setAccessible(true);
+			Field modifiersField = Field.class.getDeclaredField("modifiers");
+			modifiersField.setAccessible(true);
+		    modifiersField.setInt(renderPlayerField, renderPlayerField.getModifiers() & ~Modifier.FINAL);
+		    RenderPlayer prender = new CustomRenderPlayer(rendermanager);
+		    renderPlayerField.set(rendermanager, prender);
+
+			Field playerListField = RenderManager.class.getDeclaredField("skinMap");
+			playerListField.setAccessible(true);
+			Field modifiersField2 = Field.class.getDeclaredField("modifiers");
+			modifiersField2.setAccessible(true);
+		    modifiersField2.setInt(playerListField, playerListField.getModifiers() & ~Modifier.FINAL);
+		    Map<String, RenderPlayer> map = (Map<String, RenderPlayer>) playerListField.get(rendermanager);
+		    
+		    map.put("default", prender);
+		    map.put("slim", new CustomRenderPlayer(rendermanager, true));
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
+		
+	}
+	
 	@Override
 	public void RegisterRenderItems() {
 
@@ -115,8 +165,41 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 	
 	@Override
 	public void RegisterKeyBindings() {
-		FMLCommonHandler.instance().bus().register(Mcflight.keyhandler);
-		Mcflight.keyhandler.init();
-		EntityAirplane.input = Mcflight.keyhandler;
+		FMLCommonHandler.instance().bus().register(keyhandler);
+		keyhandler.init();
+	}
+
+	public static void reloadChunks() {
+		try {
+			RenderGlobal r = Minecraft.getMinecraft().renderGlobal;
+			Minecraft mc = Minecraft.getMinecraft();
+
+			Field f = RenderGlobal.class.getDeclaredField("viewFrustum");
+			f.setAccessible(true);
+			Field fac;
+			fac = RenderGlobal.class.getDeclaredField("renderChunkFactory");
+			fac.setAccessible(true);
+			IRenderChunkFactory factory = (IRenderChunkFactory) fac.get(r);
+			ViewFrustum frustum = new ViewFrustum(mc.world, mc.gameSettings.renderDistanceChunks, r, factory);
+			f.set(r, frustum);
+			if (mc.world != null)
+			{
+				Entity entity = mc.getRenderViewEntity();
+
+				if (entity != null)
+				{
+					frustum.updateChunkPositions(entity.posX, entity.posZ);
+				}
+			}
+
+		} catch (NoSuchFieldException e) {
+			e.printStackTrace();
+		} catch (SecurityException e) {
+			e.printStackTrace();
+		} catch (IllegalArgumentException e) {
+			e.printStackTrace();
+		} catch (IllegalAccessException e) {
+			e.printStackTrace();
+		}
 	}
 }

@@ -7,6 +7,7 @@ import net.minecraft.entity.Entity;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.world.World;
+import thepowderguy.mcflight.client.MCFlightClientProxy;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.util.Mat3;
 import thepowderguy.mcflight.util.Vec3;
@@ -167,13 +168,13 @@ this.setPosition(posX, posY, posZ);
 
 		//super.onUpdate();
 
-		CameraView view = EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode];
+		CameraView view = EntityAirplaneCamera.views[MCFlightClientProxy.keyhandler.camera_mode];
 		view.prevZoom = view.zoom;
-		if (Mcflight.keyhandler.zoom_in.isKeyDown()) {
+		if (MCFlightClientProxy.keyhandler.zoom_in.isKeyDown()) {
 			view.zoom -= 0.2;
 			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
 		}
-		if (Mcflight.keyhandler.zoom_out.isKeyDown()) {
+		if (MCFlightClientProxy.keyhandler.zoom_out.isKeyDown()) {
 			view.zoom += 0.2;
 			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
 		}
@@ -190,8 +191,8 @@ this.setPosition(posX, posY, posZ);
 
 			if (isPlayerRiding) {
 				Minecraft mc = Minecraft.getMinecraft();
-				CameraView currentview = views[Mcflight.keyhandler.camera_mode];
-				if (Mcflight.keyhandler.look_around.isKeyDown()) {
+				CameraView currentview = views[MCFlightClientProxy.keyhandler.camera_mode];
+				if (MCFlightClientProxy.keyhandler.look_around.isKeyDown()) {
 					mc.mouseHelper.mouseXYChange();
 					int dx = mc.mouseHelper.deltaX;
 					int dy = mc.mouseHelper.deltaY;
@@ -200,7 +201,7 @@ this.setPosition(posX, posY, posZ);
 					currentview.viewYawOffset = EntityAirplane.clamp(-180, currentview.viewYawOffset, 180);
 					currentview.viewPitchOffset = EntityAirplane.clamp(-90, currentview.viewPitchOffset, 90);
 				}
-				int view_id = Mcflight.keyhandler.camera_mode;
+				int view_id = MCFlightClientProxy.keyhandler.camera_mode;
 				Mat3 basetransform = null;
 				Mat3 looktransform = Mat3.getTransformMatrix(currentview.viewYawOffset, currentview.viewPitchOffset, 0);
 				GameSettings settings = Minecraft.getMinecraft().gameSettings;

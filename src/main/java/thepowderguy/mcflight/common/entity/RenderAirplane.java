@@ -9,6 +9,7 @@ import net.minecraft.client.renderer.Tessellator;
 import net.minecraft.client.renderer.entity.Render;
 import net.minecraft.client.renderer.entity.RenderManager;
 import net.minecraft.client.renderer.vertex.DefaultVertexFormats;
+import thepowderguy.mcflight.client.MCFlightClientProxy;
 import thepowderguy.mcflight.common.Mcflight;
 import thepowderguy.mcflight.common.entity.biplane.ModelBiplane;
 import thepowderguy.mcflight.physics.CollisionPoint;
@@ -33,7 +34,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
 	{
 		super.doRender(entity, x, y, z, par1, partialTicks);
 		
-    	if (Mcflight.keyhandler.vectordrawing_toggled && entity.vectorsInitialized)
+    	if (MCFlightClientProxy.keyhandler.vectordrawing_toggled && entity.vectorsInitialized)
     	{
 
     		GlStateManager.pushMatrix();
@@ -100,7 +101,7 @@ public abstract class RenderAirplane<T extends EntityAirplane> extends Render<T>
     	
     	GlStateManager.scale(-scale, -scale, scale);
  
-    	((ModelBiplane)model).render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F, partialTicks, Mcflight.keyhandler.vectordrawing_toggled);
+    	((ModelBiplane)model).render(entity, 0.0F, 0.0F, -0.1F, 0.0F, 0.0F, 0.0625F, partialTicks, MCFlightClientProxy.keyhandler.vectordrawing_toggled);
 
     	GlStateManager.popMatrix();
 	}

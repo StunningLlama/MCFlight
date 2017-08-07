@@ -57,7 +57,7 @@ public class RenderAirplaneInterface extends Gui {
 			return;
 		int cX = event.getResolution().getScaledWidth()/2;
 		int cY = event.getResolution().getScaledHeight()/2-20;
-		if (Mcflight.keyhandler.hud_toggled) {
+		if (MCFlightClientProxy.keyhandler.hud_toggled) {
 
 			float[] arr = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 			GL11.glDisable(GL11.GL_LIGHTING);
@@ -162,7 +162,7 @@ public class RenderAirplaneInterface extends Gui {
 		}
 		font.drawString("+", (int)EntityAirplane.mouseX/2+cX - 2, cY-(int)EntityAirplane.mouseY/2 - 3, 0xffffffff);
 		
-		if (Mcflight.keyhandler.debug_toggled)
+		if (MCFlightClientProxy.keyhandler.debug_toggled)
 			drawDebugScr();
 	}
 	

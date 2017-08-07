@@ -24,7 +24,8 @@ public class EntityBiplane extends EntityAirplane {
 	
 	static {
 		engineSound = "mcflight:airplane.biplane.engine";
-		scale = RenderBiplane.scale/16.0;
+		//scale = RenderBiplane.scale/16.0;;
+		scale = 1.25/16.0;
 		airplaneItem = Mcflight.item_airplane_biplane;
 		fuelCapacity = 100.0f;
 		defaultAirfoilSections = new ArrayList<ControlSurface>();

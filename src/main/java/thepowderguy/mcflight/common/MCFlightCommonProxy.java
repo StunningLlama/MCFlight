@@ -8,4 +8,6 @@ public class MCFlightCommonProxy {
 	public void RegisterRenderGUI() {}
 	public void RegisterFluidModel(IFluidBlock b) {}
 	public void RegisterKeyBindings() {}
+	public void InjectStuff() {}
+	public void registerFluidModel(IFluidBlock fluidBlock) {}
 }

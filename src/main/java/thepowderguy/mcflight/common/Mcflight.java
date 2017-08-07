@@ -1,20 +1,8 @@
 package thepowderguy.mcflight.common;
 
-import java.lang.reflect.Field;
-
-import java.lang.reflect.Modifier;
-import java.util.Map;
-
+import net.minecraft.client.Minecraft;
 import net.minecraft.block.Block;
 import net.minecraft.block.material.Material;
-import net.minecraft.block.state.IBlockState;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.ItemMeshDefinition;
-import net.minecraft.client.renderer.block.model.ModelBakery;
-import net.minecraft.client.renderer.block.model.ModelResourceLocation;
-import net.minecraft.client.renderer.block.statemap.StateMapperBase;
-import net.minecraft.client.renderer.entity.RenderManager;
-import net.minecraft.client.renderer.entity.RenderPlayer;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.init.Blocks;
 import net.minecraft.init.Items;
@@ -23,7 +11,6 @@ import net.minecraft.item.ItemStack;
 import net.minecraft.item.crafting.Ingredient;
 import net.minecraft.util.ResourceLocation;
 import net.minecraft.util.SoundEvent;
-import net.minecraftforge.client.model.ModelLoader;
 import net.minecraftforge.common.ForgeModContainer;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.RegistryEvent;
@@ -46,8 +33,6 @@ import net.minecraftforge.fml.common.registry.GameRegistry;
 import net.minecraftforge.fml.relauncher.Side;
 import thepowderguy.mcflight.client.InterfaceKeyHandler;
 import thepowderguy.mcflight.client.gui.McflightGUIHandler;
-import thepowderguy.mcflight.client.util.CustomEntityRenderer;
-import thepowderguy.mcflight.client.util.CustomRenderPlayer;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.common.entity.biplane.ItemBiplane;
 import thepowderguy.mcflight.common.item.AircraftPaint;
@@ -74,8 +59,6 @@ public class Mcflight {
 	public static String VERSION = "0.1";
 	public static SimpleNetworkWrapper network = null;
 	public static SimpleNetworkWrapper network2 = null;
-	
-	public static InterfaceKeyHandler keyhandler = new InterfaceKeyHandler();
 
 	//parts
 	public static Item item_flap;
@@ -209,6 +192,12 @@ public class Mcflight {
 
 		
 		MinecraftForge.EVENT_BUS.register(this);
+		
+		if (event.getSide() == Side.CLIENT) {
+			System.out.println("CLIENT SIDE! " + Minecraft.getMinecraft().getLimitFramerate());
+		} else {
+			System.out.println("SERVER SIDE!");
+		}
 	}
 
 	@EventHandler
@@ -259,42 +248,7 @@ public class Mcflight {
 
 	@EventHandler
 	public static void postInit(FMLPostInitializationEvent event) {
-		injectStuff(event.getSide());
-	}
-	
-	public static void injectStuff(Side side) {
-		if (side != Side.CLIENT)
-			return;
-		Minecraft.getMinecraft().entityRenderer = new CustomEntityRenderer(Minecraft.getMinecraft(), Minecraft.getMinecraft().getResourceManager());
-		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
-		try {
-			Field renderPlayerField = RenderManager.class.getDeclaredField("playerRenderer");
-			renderPlayerField.setAccessible(true);
-			Field modifiersField = Field.class.getDeclaredField("modifiers");
-			modifiersField.setAccessible(true);
-		    modifiersField.setInt(renderPlayerField, renderPlayerField.getModifiers() & ~Modifier.FINAL);
-		    RenderPlayer prender = new CustomRenderPlayer(rendermanager);
-		    renderPlayerField.set(rendermanager, prender);
-
-			Field playerListField = RenderManager.class.getDeclaredField("skinMap");
-			playerListField.setAccessible(true);
-			Field modifiersField2 = Field.class.getDeclaredField("modifiers");
-			modifiersField2.setAccessible(true);
-		    modifiersField2.setInt(playerListField, playerListField.getModifiers() & ~Modifier.FINAL);
-		    Map<String, RenderPlayer> map = (Map<String, RenderPlayer>) playerListField.get(rendermanager);
-		    
-		    map.put("default", prender);
-		    map.put("slim", new CustomRenderPlayer(rendermanager, true));
-		} catch (NoSuchFieldException e) {
-			e.printStackTrace();
-		} catch (SecurityException e) {
-			e.printStackTrace();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalAccessException e) {
-			e.printStackTrace();
-		}
-		
+		proxy.InjectStuff();
 	}
 	
 	public static Ingredient i(Block b)
@@ -320,24 +274,4 @@ public class Mcflight {
 		return new ResourceLocation("mcflight", name);
 	}
 	
-	private void registerFluidModel(IFluidBlock fluidBlock) {
-		Item item = Item.getItemFromBlock((Block) fluidBlock);
-
-		ModelBakery.registerItemVariants(item);
-
-		final ModelResourceLocation modelResourceLocation = new ModelResourceLocation("", fluidBlock.getFluid().getName());
-
-		ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition(){
-			@Override
-			public ModelResourceLocation getModelLocation(ItemStack stack) {
-				return modelResourceLocation;
-			}});
-
-		ModelLoader.setCustomStateMapper((Block) fluidBlock, new StateMapperBase() {
-			@Override
-			protected ModelResourceLocation getModelResourceLocation(IBlockState p_178132_1_) {
-				return modelResourceLocation;
-			}
-		});
-	}
 }

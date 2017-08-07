@@ -3,9 +3,19 @@ package thepowderguy.mcflight.client;
 import org.lwjgl.input.Keyboard;
 import org.lwjgl.input.Mouse;
 
+import net.minecraft.block.Block;
+import net.minecraft.block.state.IBlockState;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemMeshDefinition;
+import net.minecraft.client.renderer.block.model.ModelBakery;
+import net.minecraft.client.renderer.block.model.ModelResourceLocation;
+import net.minecraft.client.renderer.block.statemap.StateMapperBase;
+import net.minecraft.item.Item;
+import net.minecraft.item.ItemStack;
 import net.minecraftforge.client.event.EntityViewRenderEvent;
 import net.minecraftforge.client.event.FOVUpdateEvent;
+import net.minecraftforge.client.model.ModelLoader;
+import net.minecraftforge.fluids.IFluidBlock;
 import net.minecraftforge.fml.common.eventhandler.SubscribeEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent;
 import net.minecraftforge.fml.common.gameevent.TickEvent.RenderTickEvent;
@@ -22,6 +32,27 @@ public class ClientEventHandler {
 	public boolean prevRiding = false;
 	Minecraft mc = Minecraft.getMinecraft();
 
+	private void registerFluidModel(IFluidBlock fluidBlock) {
+		Item item = Item.getItemFromBlock((Block) fluidBlock);
+
+		ModelBakery.registerItemVariants(item);
+
+		final ModelResourceLocation modelResourceLocation = new ModelResourceLocation("", fluidBlock.getFluid().getName());
+
+		ModelLoader.setCustomMeshDefinition(item, new ItemMeshDefinition(){
+			@Override
+			public ModelResourceLocation getModelLocation(ItemStack stack) {
+				return modelResourceLocation;
+			}});
+
+		ModelLoader.setCustomStateMapper((Block) fluidBlock, new StateMapperBase() {
+			@Override
+			protected ModelResourceLocation getModelResourceLocation(IBlockState p_178132_1_) {
+				return modelResourceLocation;
+			}
+		});
+	}
+	
 	public ClientEventHandler() {
 	}
 
@@ -51,7 +82,7 @@ public class ClientEventHandler {
 	@SubscribeEvent
 	public void onCameraDistanceUpdate(CameraDistanceEvent event) {
 		if (event.getPlayer().getRidingEntity() instanceof EntityAirplane) {
-			CameraView c = EntityAirplaneCamera.views[Mcflight.keyhandler.camera_mode];
+			CameraView c = EntityAirplaneCamera.views[MCFlightClientProxy.keyhandler.camera_mode];
 			event.setDist(c.prevZoom + (c.zoom-c.prevZoom)*event.getPartialTicks());
 		}
 	}
@@ -66,7 +97,7 @@ public class ClientEventHandler {
 		if (Keyboard.isKeyDown(Keyboard.KEY_NUMPAD6))
 			camroll += 0.5;
 
-		if (isPlayerRidingAirplane() && !Mcflight.keyhandler.look_around.isKeyDown()) {
+		if (isPlayerRidingAirplane() && !MCFlightClientProxy.keyhandler.look_around.isKeyDown()) {
 			mc.mouseHelper.mouseXYChange();
 			int dx = mc.mouseHelper.deltaX;
 			int dy = mc.mouseHelper.deltaY;
