@@ -212,30 +212,30 @@ public class Mcflight {
 	public void init(FMLInitializationEvent event) {
 		ResourceLocation group = new ResourceLocation("mcflight", "airplanetab");
 		
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_flap), "   ", "pii", "   ",
-				'p', i(Blocks.PISTON), 'i', i(Items.IRON_INGOT));
-		GameRegistry.addShapedRecipe(r("r1"), group, ii(item_wing), " f ", "bbb", "   ",
-				'f', i(item_flap), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addShapelessRecipe(r("r0"), group, ii(item_doublewing), 
-				i(item_wing), i(item_wing));
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_propeller), "iii", "ipi", "iii",
-				'p', i(Blocks.PISTON), 'i', i(Items.IRON_INGOT));
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_jetengine), "ipi", "ifi", "i i",
-				'p', i(item_propeller), 'i', i(Items.IRON_INGOT), 'f', i(Blocks.FURNACE));
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_bigfuselage), "bgb", "b b", "bbb",
-				'g', i(Blocks.GLASS), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_smallfuselage), "   ", "bgb", "bbb",
-				'g', i(Blocks.GLASS), 'b', i(Blocks.IRON_BLOCK));
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_tail), " b ", "fbf", " f ",
-				'f', i(item_flap), 'b', i(Blocks.IRON_BLOCK));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_flap), "   ", "pii", "   ",
+				'p', toIngredient(Blocks.PISTON), 'i', toIngredient(Items.IRON_INGOT));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r1"), group, toItemstack(item_wing), " f ", "bbb", "   ",
+				'f', toIngredient(item_flap), 'b', toIngredient(Blocks.IRON_BLOCK));
+		GameRegistry.addShapelessRecipe(toResrouceLocation("r0"), group, toItemstack(item_doublewing), 
+				toIngredient(item_wing), toIngredient(item_wing));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_propeller), "iii", "ipi", "iii",
+				'p', toIngredient(Blocks.PISTON), 'i', toIngredient(Items.IRON_INGOT));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_jetengine), "ipi", "ifi", "i i",
+				'p', toIngredient(item_propeller), 'i', toIngredient(Items.IRON_INGOT), 'f', toIngredient(Blocks.FURNACE));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_bigfuselage), "bgb", "b b", "bbb",
+				'g', toIngredient(Blocks.GLASS), 'b', toIngredient(Blocks.IRON_BLOCK));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_smallfuselage), "   ", "bgb", "bbb",
+				'g', toIngredient(Blocks.GLASS), 'b', toIngredient(Blocks.IRON_BLOCK));
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_tail), " b ", "fbf", " f ",
+				'f', toIngredient(item_flap), 'b', toIngredient(Blocks.IRON_BLOCK));
 		
-		GameRegistry.addShapedRecipe(r("r0"), group, ii(item_airplane_biplane), " p ", "dfd", " t ",
-				'p', i(item_propeller), 'd', i(item_doublewing), 'f', i(item_smallfuselage), 't', i(item_tail));
-		GameRegistry.addSmelting((UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)), ii(item_kerosene), 0f);
+		GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, toItemstack(item_airplane_biplane), " p ", "dfd", " t ",
+				'p', toIngredient(item_propeller), 'd', toIngredient(item_doublewing), 'f', toIngredient(item_smallfuselage), 't', toIngredient(item_tail));
+		GameRegistry.addSmelting((UniversalBucket.getFilledBucket(ForgeModContainer.getInstance().universalBucket, (Fluid)fluid_oil)), toItemstack(item_kerosene), 0f);
 		ForgeModContainer.getInstance().universalBucket.setCreativeTab(tab_aircraft); // this is kind of not good, prehaps forge will implement a better method to do this
 		for (int i = 0; i < 16; ++i)
         {
-           GameRegistry.addShapedRecipe(r("r0"), group, new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
+           GameRegistry.addShapedRecipe(toResrouceLocation("r0"), group, new ItemStack(item_paint, 1, i), new Object[] {"###", "#X#", "###", 'X', new ItemStack(Items.BUCKET), '#', new ItemStack(Items.DYE, 8, i)});
         }
         //ItemColors.
 		proxy.RegisterRenderItems();
@@ -251,26 +251,26 @@ public class Mcflight {
 		proxy.InjectStuff();
 	}
 	
-	public static Ingredient i(Block b)
+	public static Ingredient toIngredient(Block b)
 	{
 		return Ingredient.func_193369_a(new ItemStack(b));
 	}
 
-	public static ItemStack ii(Block b)
+	public static ItemStack toItemstack(Block b)
 	{
 		return new ItemStack(b);
 	}
 	
-	public static Ingredient i(Item i)
+	public static Ingredient toIngredient(Item i)
 	{
 		return Ingredient.func_193367_a(i);
 	}
 
-	public static ItemStack ii(Item b)
+	public static ItemStack toItemstack(Item b)
 	{
 		return new ItemStack(b);
 	}
-	public static ResourceLocation r(String name) {
+	public static ResourceLocation toResrouceLocation(String name) {
 		return new ResourceLocation("mcflight", name);
 	}
 	

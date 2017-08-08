@@ -965,7 +965,7 @@ public abstract class EntityAirplane extends Entity {
            	}
         }
         if (clientSide())
-        	;//*%       	this.cam.setDead();
+        	this.cam.setDead();
     }
    
 	@Override

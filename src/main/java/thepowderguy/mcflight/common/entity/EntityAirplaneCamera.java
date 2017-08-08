@@ -171,10 +171,12 @@ this.setPosition(posX, posY, posZ);
 		CameraView view = EntityAirplaneCamera.views[MCFlightClientProxy.keyhandler.camera_mode];
 		view.prevZoom = view.zoom;
 		if (MCFlightClientProxy.keyhandler.zoom_in.isKeyDown()) {
+			System.out.println("Zoom in!");
 			view.zoom -= 0.2;
 			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
 		}
 		if (MCFlightClientProxy.keyhandler.zoom_out.isKeyDown()) {
+			System.out.println("Zoom Out!");
 			view.zoom += 0.2;
 			view.zoom = clamp(EntityAirplaneCamera.min_zoom, view.zoom, EntityAirplaneCamera.max_zoom);
 		}

@@ -32,7 +32,6 @@ import thepowderguy.mcflight.client.util.CustomEntityRenderer;
 import thepowderguy.mcflight.client.util.CustomRenderPlayer;
 import thepowderguy.mcflight.common.MCFlightCommonProxy;
 import thepowderguy.mcflight.common.Mcflight;
-import thepowderguy.mcflight.common.entity.EntityAirplane;
 import thepowderguy.mcflight.common.entity.EntityAirplaneCamera;
 import thepowderguy.mcflight.common.entity.biplane.EntityBiplane;
 import thepowderguy.mcflight.common.entity.biplane.RenderBiplane;
@@ -42,9 +41,7 @@ public class MCFlightClientProxy extends MCFlightCommonProxy {
 
 	public static InterfaceKeyHandler keyhandler = new InterfaceKeyHandler();
 	
-	public void injectStuff(Side side) {
-		if (side != Side.CLIENT)
-			return;
+	public void InjectStuff() {
 		Minecraft.getMinecraft().entityRenderer = new CustomEntityRenderer(Minecraft.getMinecraft(), Minecraft.getMinecraft().getResourceManager());
 		RenderManager rendermanager = Minecraft.getMinecraft().getRenderManager();
 		try {

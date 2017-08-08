@@ -18,13 +18,12 @@ public class AircraftPaint extends Item {
 		return AirplaneColors.getHexRgb(EnumDyeColor.byDyeDamage(i.getMetadata()));
 	}
 	
-
-    @SideOnly(Side.CLIENT)
-    public void getSubItems(Item itemIn, CreativeTabs tab, NonNullList<ItemStack> subItems)
+	@Override
+    public void getSubItems(CreativeTabs tab, NonNullList<ItemStack> subItems)
     {
         for (int i = 0; i < 16; i++)
         {
-            ItemStack itemstack = new ItemStack(itemIn, 1, i);
+            ItemStack itemstack = new ItemStack(this, 1, i);
             subItems.add(itemstack);
         }
     }
